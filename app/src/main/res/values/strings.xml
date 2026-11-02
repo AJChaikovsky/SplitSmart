@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SplitSmart</string>
+    <string name="login">Log in</string>
+    <string name="register">Register</string>
+    <string name="email">USC Email</string>
+    <string name="password">Password</string>
+    <string name="name">Name</string>
+    <string name="usc_id">USC ID</string>
+    <string name="create_group">Create Group</string>
+    <string name="group_name">Group name</string>
+    <string name="description">Description</string>
+    <string name="add_member">Add Member</string>
+    <string name="add_expense">Add Expense</string>
+    <string name="balances">Balances</string>
+    <string name="history">History</string>
+    <string name="monthly_summary">Monthly Summary</string>
+    <string name="members">Members</string>
+    <string name="edit_group">Edit Group</string>
+    <string name="delete">Delete</string>
+    <string name="save">Save</string>
+    <string name="amount">Amount</string>
+    <string name="title">Title</string>
+    <string name="date">Date (YYYY-MM-DD)</string>
+    <string name="note">Note</string>
+    <string name="category">Category</string>
+    <string name="split_method">Split method</string>
+    <string name="create_settlement">Record Settlement</string>
+    <string name="profile">Profile</string>
+    <string name="logout">Log out</string>
+    <string name="no_groups">No groups yet. Create one to get started.</string>
+    <string name="no_expenses_month">No expenses for this month.</string>
+    <string name="total_to_pay">Total to pay</string>
+    <string name="total_to_receive">Total to receive</string>
+    <string name="search">Search</string>
+    <string name="filter">Filter</string>
+</resources>
