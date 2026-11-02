@@ -5,7 +5,7 @@
 Android expense-splitting app for USC students. Split group expenses equally, by exact amounts, or by percentage; track pairwise balances; record settlements; and review history and monthly summaries.
 
 Package: `com.splitsmart.app`  
-Min SDK 26 · Target / Compile SDK 34
+Min SDK 26 · Target SDK 34 · Compile SDK 36
 
 ## Architecture (layered)
 
@@ -16,51 +16,42 @@ Min SDK 26 · Target / Compile SDK 34
 
 Firestore collections: `users`, `groups`, `expenses`, `settlements`
 
+## Firebase (already configured)
+
+| Item | Value |
+|------|--------|
+| Project ID | `splitsmart-team10` |
+| Android package | `com.splitsmart.app` |
+| Auth | Email/Password enabled |
+| Firestore | `(default)` in `nam5` with security rules in `firestore.rules` |
+| Config file | `app/google-services.json` (real, not placeholder) |
+
+Console: https://console.firebase.google.com/project/splitsmart-team10/overview
+
 ## Open in Android Studio
 
 1. Install [Android Studio](https://developer.android.com/studio) (Hedgehog or newer recommended).
 2. **File → Open** and select this project folder (`Project 2.3`).
-3. Let Gradle sync. If prompted, use the bundled JDK  
-   (`/Applications/Android Studio.app/Contents/jbr/Contents/Home` on macOS).
+3. Let Gradle sync. Prefer **JDK 21** for Gradle  
+   (`/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home` on this machine).  
+   Android Studio’s bundled JBR 25 may fail Kotlin compilation.
 4. Connect a device or start an emulator (API 26+).
 5. Run the `app` configuration.
 
 ### Command-line build
 
 ```bash
-export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home"
 ./gradlew assembleDebug
 ```
 
 Unit tests:
 
 ```bash
-./gradlew test
+./gradlew testDebugUnitTest
 ```
 
-## Firebase setup (required for Auth / Firestore at runtime)
-
-The repo includes a **placeholder** `app/google-services.json` with `project_id` `splitsmart-placeholder` so Gradle sync and `assembleDebug` succeed. **Replace it with a real file before using login, registration, or cloud data.**
-
-1. Go to [Firebase Console](https://console.firebase.google.com/) and create a project (e.g. `SplitSmart`).
-2. Add an **Android** app with package name `com.splitsmart.app`.
-3. Download `google-services.json` and replace `app/google-services.json`.
-4. Enable **Authentication → Sign-in method → Email/Password**.
-5. Create a **Cloud Firestore** database (start in test mode for development, then tighten rules).
-6. Suggested security rules for development only:
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-  }
-}
-```
-
-7. Rebuild and run. Register with a `@usc.edu` email and a 10-digit USC ID.
+Register with a `@usc.edu` email and a 10-digit USC ID.
 
 ## Main flows
 

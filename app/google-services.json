@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "splitsmart-placeholder",
-    "storage_bucket": "splitsmart-placeholder.appspot.com"
+    "project_number": "579217953727",
+    "project_id": "splitsmart-team10",
+    "storage_bucket": "splitsmart-team10.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:579217953727:android:f079c769fe40bb2dd4870a",
         "android_client_info": {
           "package_name": "com.splitsmart.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyPlaceholderKeyReplaceWithRealKey00"
+          "current_key": "AIzaSyDIPlKDh9cTTfloqcwpbgo9AQGsYjJixSg"
         }
       ],
       "services": {
