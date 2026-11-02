@@ -41,20 +41,46 @@ class AccountManager(
 
         val normalizedEmail = email.trim().lowercase()
         val normalizedUscId = uscId.trim()
-        val existingEmail = userRepository.getByEmail(normalizedEmail)
-        require(existingEmail == null) { "An account with this email already exists" }
-        val existingUscId = userRepository.getByUscId(normalizedUscId)
-        require(existingUscId == null) { "An account with this USC ID already exists" }
 
-        val firebaseUser = authManager.register(normalizedEmail, password)
-        val user = User(
-            uid = firebaseUser.uid,
-            name = name.trim(),
-            email = normalizedEmail,
-            uscId = normalizedUscId
-        )
-        userRepository.save(user)
-        return user
+        // Auth first so Firestore reads/writes run as a signed-in user.
+        // Email uniqueness is enforced by Firebase Authentication.
+        val firebaseUser = try {
+            authManager.register(normalizedEmail, password)
+        } catch (e: Exception) {
+            val msg = e.message.orEmpty()
+            when {
+                msg.contains("email address is already in use", ignoreCase = true) ||
+                    msg.contains("ERROR_EMAIL_ALREADY_IN_USE", ignoreCase = true) ->
+                    throw IllegalArgumentException("An account with this email already exists")
+                msg.contains("badly formatted", ignoreCase = true) ->
+                    throw IllegalArgumentException("Email address is invalid")
+                msg.contains("weak", ignoreCase = true) ->
+                    throw IllegalArgumentException("Password is too weak")
+                else -> throw e
+            }
+        }
+
+        try {
+            val existingUscId = userRepository.getByUscId(normalizedUscId)
+            require(existingUscId == null) { "An account with this USC ID already exists" }
+
+            val user = User(
+                uid = firebaseUser.uid,
+                name = name.trim(),
+                email = normalizedEmail,
+                uscId = normalizedUscId
+            )
+            userRepository.save(user)
+            return user
+        } catch (e: Exception) {
+            // Roll back orphan Auth account if profile creation fails.
+            try {
+                authManager.deleteCurrentUser()
+            } catch (_: Exception) {
+                authManager.logout()
+            }
+            throw e
+        }
     }
 
     suspend fun login(email: String, password: String): User {

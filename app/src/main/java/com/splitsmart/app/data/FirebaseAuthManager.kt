@@ -27,6 +27,11 @@ class FirebaseAuthManager(
         auth.signOut()
     }
 
+    suspend fun deleteCurrentUser() {
+        val user = auth.currentUser ?: return
+        user.delete().await()
+    }
+
     companion object {
         @Volatile
         private var instance: FirebaseAuthManager? = null
