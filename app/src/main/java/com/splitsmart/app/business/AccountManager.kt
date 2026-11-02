@@ -40,15 +40,18 @@ class AccountManager(
         require(validation.ok) { validation.error ?: "Invalid registration" }
 
         val normalizedEmail = email.trim().lowercase()
-        val existing = userRepository.getByEmail(normalizedEmail)
-        require(existing == null) { "An account with this email already exists" }
+        val normalizedUscId = uscId.trim()
+        val existingEmail = userRepository.getByEmail(normalizedEmail)
+        require(existingEmail == null) { "An account with this email already exists" }
+        val existingUscId = userRepository.getByUscId(normalizedUscId)
+        require(existingUscId == null) { "An account with this USC ID already exists" }
 
         val firebaseUser = authManager.register(normalizedEmail, password)
         val user = User(
             uid = firebaseUser.uid,
             name = name.trim(),
             email = normalizedEmail,
-            uscId = uscId.trim()
+            uscId = normalizedUscId
         )
         userRepository.save(user)
         return user

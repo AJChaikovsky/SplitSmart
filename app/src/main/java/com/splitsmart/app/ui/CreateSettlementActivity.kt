@@ -53,7 +53,9 @@ class CreateSettlementActivity : AppCompatActivity() {
                     return@runOnUiThread
                 }
                 binding.spPayTo.adapter = ArrayAdapter(
-                    this, android.R.layout.simple_spinner_dropdown_item, labels
+                    this@CreateSettlementActivity,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    labels
                 )
                 binding.spPayTo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                     override fun onItemSelected(

@@ -62,14 +62,14 @@ class CreateExpenseActivity : AppCompatActivity() {
             runOnUiThread {
                 binding.progress.visibility = View.GONE
                 binding.spPayer.adapter = ArrayAdapter(
-                    this,
+                    this@CreateExpenseActivity,
                     android.R.layout.simple_spinner_dropdown_item,
                     members.map { "${it.name} (${it.email})" }
                 )
                 binding.llParticipants.removeAllViews()
                 participantChecks.clear()
                 members.forEach { user ->
-                    val cb = CheckBox(this).apply {
+                    val cb = CheckBox(this@CreateExpenseActivity).apply {
                         text = "${user.name} (${user.email})"
                         isChecked = existing?.participantIds?.contains(user.uid) != false
                         setOnCheckedChangeListener { _, _ -> rebuildSplitValueInputs() }

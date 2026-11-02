@@ -23,6 +23,15 @@ class UserRepository(
         return results.firstOrNull()?.let { User.fromMap(it) }
     }
 
+    suspend fun getByUscId(uscId: String): User? {
+        val results = firestore.queryEquals(
+            FirestoreManager.COLLECTION_USERS,
+            "uscId",
+            uscId.trim()
+        )
+        return results.firstOrNull()?.let { User.fromMap(it) }
+    }
+
     suspend fun updateName(uid: String, name: String) {
         firestore.updateDocument(
             FirestoreManager.COLLECTION_USERS,

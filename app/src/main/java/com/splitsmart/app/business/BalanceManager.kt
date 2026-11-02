@@ -12,9 +12,14 @@ import com.splitsmart.app.model.Settlement
  * No debt simplification across triples.
  */
 class BalanceManager(
-    private val expenseRepository: ExpenseRepository = ExpenseRepository.getInstance(),
-    private val settlementRepository: SettlementRepository = SettlementRepository.getInstance()
+    private val expenseRepository: ExpenseRepository? = null,
+    private val settlementRepository: SettlementRepository? = null
 ) {
+    private fun expenses(): ExpenseRepository =
+        expenseRepository ?: ExpenseRepository.getInstance()
+
+    private fun settlements(): SettlementRepository =
+        settlementRepository ?: SettlementRepository.getInstance()
     data class PairBalance(
         val fromUserId: String,
         val toUserId: String,
@@ -99,8 +104,8 @@ class BalanceManager(
     }
 
     suspend fun getBalancesForGroup(groupId: String): List<PairBalance> {
-        val expenses = expenseRepository.getByGroup(groupId)
-        val settlements = settlementRepository.getByGroup(groupId)
+        val expenses = expenses().getByGroup(groupId)
+        val settlements = settlements().getByGroup(groupId)
         return computePairwiseBalances(expenses, settlements)
     }
 
