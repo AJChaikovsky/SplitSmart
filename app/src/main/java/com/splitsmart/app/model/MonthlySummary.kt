@@ -7,7 +7,8 @@ data class MonthlySummary(
     var totalSpending: Double = 0.0,
     var categoryTotals: Map<String, Double> = emptyMap(),
     /** Display name -> amount paid this month. */
-    var payerTotals: Map<String, Double> = emptyMap()
+    var payerTotals: Map<String, Double> = emptyMap(),
+    var payerInsights: List<String> = emptyList()
 ) {
     fun isEmpty(): Boolean = expenseCount == 0
 }

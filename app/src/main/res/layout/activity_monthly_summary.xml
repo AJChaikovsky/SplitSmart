@@ -109,6 +109,27 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:minHeight="80dp" />
+
+            <TextView
+                android:id="@+id/tvPayerInsightsTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/payer_insights"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvPayerInsights"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@color/primary_light"
+                android:lineSpacingExtra="6dp"
+                android:padding="12dp"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
         </LinearLayout>
 
         <ProgressBar

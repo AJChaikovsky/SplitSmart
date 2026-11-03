@@ -38,4 +38,5 @@
     <string name="remove_member">Remove</string>
     <string name="spending_by_category">Spending by category</string>
     <string name="spending_by_payer">Paid by member</string>
+    <string name="payer_insights">Spending differences</string>
 </resources>

@@ -48,6 +48,7 @@ class MonthlySummaryActivity : AppCompatActivity() {
                     binding.layoutCharts.visibility = View.GONE
                     binding.categoryChart.clear()
                     binding.payerChart.clear()
+                    binding.tvPayerInsights.text = ""
                 } else {
                     binding.tvSummary.text = buildString {
                         appendLine("${summary.year}-${summary.month.toString().padStart(2, '0')}")
@@ -59,6 +60,11 @@ class MonthlySummaryActivity : AppCompatActivity() {
                         formatMoney(summary.totalSpending)
                     )
                     binding.payerChart.setData(summary.payerTotals)
+                    binding.tvPayerInsights.text = if (summary.payerInsights.isEmpty()) {
+                        "Everyone paid the same this month."
+                    } else {
+                        summary.payerInsights.joinToString("\n") { "• $it" }
+                    }
                 }
             }
         }
