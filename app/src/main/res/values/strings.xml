@@ -103,4 +103,37 @@ Try another search or filter.</string>
     <string name="group_load_error">Could not load the group.</string>
     <string name="view_summary">View</string>
     <string name="month">Month</string>
+    <string name="tab_groups">Groups</string>
+    <string name="tab_friends">Friends</string>
+    <string name="tab_requests">Requests</string>
+    <string name="tab_activity">Activity</string>
+    <string name="your_friends">Your friends</string>
+    <string name="friends_subtitle">See who you owe — and who owes you.</string>
+    <string name="your_requests">Requests</string>
+    <string name="requests_subtitle">Accept or deny friend and group invites.</string>
+    <string name="your_activity">Activity</string>
+    <string name="activity_subtitle">Everything that involves you, across groups.</string>
+    <string name="no_friends">No friends yet.
+Tap + to send a friend request by USC email.</string>
+    <string name="no_requests">No pending requests.
+When someone invites you, it shows up here.</string>
+    <string name="no_activity">Nothing here yet.
+Add an expense or settlement to see activity.</string>
+    <string name="add_friend">Add friend</string>
+    <string name="friend_email">Friend USC email</string>
+    <string name="friend_request_sent">Friend request sent</string>
+    <string name="group_invite_sent">Invite sent</string>
+    <string name="add_friends_to_group">Invite friends</string>
+    <string name="add_friends_to_group_hint">Selected friends get an invite. They join after accepting on Requests.</string>
+    <string name="add_from_friends">Invite from friends</string>
+    <string name="no_friends_to_add">All your friends are already in this group, or already invited.</string>
+    <string name="accept_request">Accept</string>
+    <string name="deny_request">Deny</string>
+    <string name="request_friend">Friend request</string>
+    <string name="request_group">Group invite</string>
+    <string name="settled_up">Settled up</string>
+    <string name="owes_you">owes you %1$s</string>
+    <string name="you_owe_amount">you owe %1$s</string>
+    <string name="invite_short">Invite</string>
+    <string name="no_new_invites">No new invites sent</string>
 </resources>

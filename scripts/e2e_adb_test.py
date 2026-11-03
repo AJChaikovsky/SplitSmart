@@ -59,8 +59,9 @@ def type_text(s):
 
 def clear_and_type(rid, s):
     tap_id(rid)
-    # Select-all-ish: move to end and delete many times
-    for _ in range(40):
+    # Move to end, then backspace — DEL does nothing if the cursor is at the start.
+    sh("adb", "shell", "input", "keyevent", "123", check=False)  # MOVE_END
+    for _ in range(80):
         sh("adb", "shell", "input", "keyevent", "67", check=False)  # DEL
     type_text(s)
 

@@ -31,6 +31,18 @@ class GroupRepository(
         firestore.deleteDocument(FirestoreManager.COLLECTION_GROUPS, id)
     }
 
+    /** Self-join without reading the group first (invite accept). */
+    suspend fun addMemberFields(groupId: String, memberUid: String, memberEmail: String) {
+        firestore.arrayUnion(
+            FirestoreManager.COLLECTION_GROUPS,
+            groupId,
+            mapOf(
+                "memberIds" to memberUid,
+                "memberEmails" to memberEmail
+            )
+        )
+    }
+
     companion object {
         @Volatile
         private var instance: GroupRepository? = null

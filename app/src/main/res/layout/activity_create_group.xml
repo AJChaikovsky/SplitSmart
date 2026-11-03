@@ -48,6 +48,31 @@
                 android:minLines="3"
                 android:textSize="14sp" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/add_friends_to_group"
+            android:textAppearance="@style/TextAppearance.SplitSmart.Body"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvNoFriendsHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/add_friends_to_group_hint"
+            android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/llFriendChecks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="vertical" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
             android:layout_width="wrap_content"

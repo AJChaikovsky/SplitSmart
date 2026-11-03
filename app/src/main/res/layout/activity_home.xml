@@ -1,17 +1,221 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/background">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="20dp">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="4dp" android:gravity="center_vertical">
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="vertical" android:layout_weight="1">
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="@style/TextAppearance.SplitSmart.Title" android:textSize="20sp" android:text="@string/your_groups" />
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="@style/TextAppearance.SplitSmart.Caption" android:layout_marginTop="5dp" android:text="@string/groups_subtitle" />
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingBottom="64dp"
+        android:paddingTop="20dp"
+        android:paddingHorizontal="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvHeaderTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/your_groups"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Title"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/tvHeaderSubtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:text="@string/groups_subtitle"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Caption" />
             </LinearLayout>
-            <com.splitsmart.app.ui.ThemeToggleSwitch android:layout_width="wrap_content" android:layout_height="48dp" android:layout_marginEnd="4dp" />
-            <androidx.appcompat.widget.AppCompatImageButton android:layout_width="48dp" android:layout_height="48dp" android:padding="12dp" android:background="@drawable/background_avatar" android:src="@drawable/ic_person" app:tint="@color/text_secondary" android:contentDescription="@string/profile" android:id="@+id/btnProfile" />
+
+            <com.splitsmart.app.ui.ThemeToggleSwitch
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginEnd="4dp" />
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/btnProfile"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/background_avatar"
+                android:contentDescription="@string/profile"
+                android:padding="12dp"
+                android:src="@drawable/ic_person"
+                app:tint="@color/text_secondary" />
         </LinearLayout>
-        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progress" android:layout_width="32dp" android:layout_height="32dp" android:layout_gravity="center_horizontal" android:layout_marginTop="20dp" android:indeterminate="true" android:visibility="gone" app:indicatorSize="28dp" app:trackThickness="3dp" app:indicatorInset="2dp" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="@style/TextAppearance.SplitSmart.Body" android:gravity="center" android:padding="24dp" android:layout_marginTop="12dp" android:background="@drawable/background_card" android:textColor="@color/text_secondary" android:visibility="gone" android:text="@string/no_groups" android:id="@+id/tvEmpty" />
-        <androidx.recyclerview.widget.RecyclerView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="16dp" android:paddingBottom="88dp" android:clipToPadding="false" android:id="@+id/rvGroups" />
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorInset="2dp"
+            app:indicatorSize="28dp"
+            app:trackThickness="3dp" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="12dp"
+            android:layout_weight="1">
+
+            <!-- Groups -->
+            <LinearLayout
+                android:id="@+id/panelGroups"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvEmptyGroups"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_card"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:text="@string/no_groups"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Body"
+                    android:textColor="@color/text_secondary"
+                    android:visibility="gone" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvGroups"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingBottom="96dp" />
+            </LinearLayout>
+
+            <!-- Friends -->
+            <LinearLayout
+                android:id="@+id/panelFriends"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvFriendsSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvEmptyFriends"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_card"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:text="@string/no_friends"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Body"
+                    android:textColor="@color/text_secondary"
+                    android:visibility="gone" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvFriends"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingBottom="96dp" />
+            </LinearLayout>
+
+            <!-- Requests -->
+            <LinearLayout
+                android:id="@+id/panelRequests"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvEmptyRequests"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_card"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:text="@string/no_requests"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Body"
+                    android:textColor="@color/text_secondary"
+                    android:visibility="gone" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRequests"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingBottom="24dp" />
+            </LinearLayout>
+
+            <!-- Activity -->
+            <LinearLayout
+                android:id="@+id/panelActivity"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvEmptyActivity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_card"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:text="@string/no_activity"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Body"
+                    android:textColor="@color/text_secondary"
+                    android:visibility="gone" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvActivity"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingBottom="24dp" />
+            </LinearLayout>
+        </FrameLayout>
     </LinearLayout>
-    <com.google.android.material.floatingactionbutton.FloatingActionButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="bottom|end" android:layout_margin="24dp" android:contentDescription="@string/create_group" app:srcCompat="@drawable/ic_plus" android:id="@+id/fabCreate" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabCreate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="88dp"
+        android:contentDescription="@string/create_group"
+        app:srcCompat="@drawable/ic_plus" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/surface"
+        app:itemIconTint="@color/control_tint"
+        app:itemTextColor="@color/control_tint"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/menu_home_bottom" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

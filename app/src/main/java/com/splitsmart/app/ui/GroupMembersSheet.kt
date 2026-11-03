@@ -4,6 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
+import com.splitsmart.app.business.FriendManager
+import com.splitsmart.app.model.User
+import kotlinx.coroutines.CancellationException
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -33,13 +37,14 @@ class GroupMembersSheet : BottomSheetDialogFragment() {
         binding.btnClose.setOnClickListener { dismiss() }
         binding.btnAddMember.setOnClickListener {
             val email = binding.etMemberEmail.text?.toString().orEmpty()
-            mutate(action = { groupManager.addMemberByEmail(groupId, email) }, onSuccess = {
+            mutate(action = { groupManager.inviteMemberByEmail(groupId, email) }, onSuccess = {
                 binding.etMemberEmail.setText("")
-                requireContext().toast(getString(R.string.member_added))
+                requireContext().toast(getString(R.string.group_invite_sent))
                 notifyChanged()
                 refresh()
             })
         }
+        binding.btnAddFromFriends.setOnClickListener { showInviteFriends() }
         binding.btnLeaveGroup.setOnClickListener {
             requireContext().confirm(getString(R.string.leave_group), getString(R.string.leave_group_confirm)) {
                 mutate(action = { groupManager.leaveGroup(groupId) }, onSuccess = {
@@ -76,6 +81,7 @@ class GroupMembersSheet : BottomSheetDialogFragment() {
             binding.tvDescription.text = group.description
             binding.tvDescription.visibility = if (group.description.isBlank()) View.GONE else View.VISIBLE
             binding.layoutAddMember.visibility = if (owner) View.VISIBLE else View.GONE
+            binding.btnAddFromFriends.visibility = if (owner) View.VISIBLE else View.GONE
             binding.btnLeaveGroup.visibility = if (!owner && current != null && current in group.memberIds) View.VISIBLE else View.GONE
             binding.llMemberList.removeAllViews()
             members.forEach { (uid, name, email) ->
@@ -99,19 +105,67 @@ class GroupMembersSheet : BottomSheetDialogFragment() {
         }, onError = { showError(it) })
     }
 
+    private fun showInviteFriends() {
+        mutate(action = {
+            val group = groupManager.getGroup(groupId)
+            FriendManager.getInstance().listFriends().filter { it.uid !in group.memberIds }
+        }, onSuccess = { candidates ->
+            binding.progress.visibility = View.GONE
+            if (candidates.isEmpty()) {
+                requireContext().toast(getString(R.string.no_friends_to_add))
+                return@mutate
+            }
+            val checked = BooleanArray(candidates.size)
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.add_from_friends)
+                .setMultiChoiceItems(candidates.map { "${it.name} (${it.email})" }.toTypedArray(), checked) { _, index, selected ->
+                    checked[index] = selected
+                }
+                .setPositiveButton(R.string.invite_short) { _, _ ->
+                    inviteFriends(candidates.filterIndexed { index, _ -> checked[index] })
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        })
+    }
+
+    private fun inviteFriends(friends: List<User>) {
+        if (friends.isEmpty()) return
+        mutate(action = {
+            var sent = 0
+            friends.forEach { friend ->
+                try {
+                    groupManager.inviteMemberByUid(groupId, friend.uid)
+                    sent++
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    // Keep sending the remaining invitations when one is already pending.
+                }
+            }
+            sent
+        }, onSuccess = { sent ->
+            binding.progress.visibility = View.GONE
+            requireContext().toast(getString(if (sent > 0) R.string.group_invite_sent else R.string.no_new_invites))
+        })
+    }
+
     private fun <T> mutate(action: suspend () -> T, onSuccess: (T) -> Unit) {
         if (busy) return
         busy = true
+        binding.btnAddFromFriends.isEnabled = false
         binding.btnAddMember.isEnabled = false
         binding.btnLeaveGroup.isEnabled = false
         binding.progress.visibility = View.VISIBLE
         loadData(fetch = action, render = {
             busy = false
+            binding.btnAddFromFriends.isEnabled = true
             binding.btnAddMember.isEnabled = true
             binding.btnLeaveGroup.isEnabled = true
             onSuccess(it)
         }, onError = {
             busy = false
+            binding.btnAddFromFriends.isEnabled = true
             binding.btnAddMember.isEnabled = true
             binding.btnLeaveGroup.isEnabled = true
             showError(it)
