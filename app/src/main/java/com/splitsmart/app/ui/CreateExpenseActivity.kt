@@ -1,5 +1,6 @@
 package com.splitsmart.app.ui
 
+import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -18,6 +19,7 @@ import com.splitsmart.app.model.ExpenseCategory
 import com.splitsmart.app.model.ExpenseShare
 import com.splitsmart.app.model.SplitMethod
 import com.splitsmart.app.model.User
+import java.util.Calendar
 
 class CreateExpenseActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCreateExpenseBinding
@@ -42,10 +44,10 @@ class CreateExpenseActivity : AppCompatActivity() {
         supportActionBar?.title =
             if (editingExpenseId == null) getString(R.string.add_expense) else "Edit Expense"
 
-        // Date is auto-recorded; users do not edit it.
         binding.etDate.setText(todayIso())
-        binding.etDate.isEnabled = false
         binding.etDate.isFocusable = false
+        binding.etDate.isClickable = true
+        binding.etDate.setOnClickListener { showDatePicker() }
 
         binding.spCategory.adapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_dropdown_item, ExpenseCategory.entries.map { it.name }
@@ -131,6 +133,26 @@ class CreateExpenseActivity : AppCompatActivity() {
                 updateSharePreview()
             }
         }
+    }
+
+    private fun showDatePicker() {
+        val cal = Calendar.getInstance()
+        val current = binding.etDate.text?.toString().orEmpty()
+        if (current.matches(Regex("^\\d{4}-\\d{2}-\\d{2}$"))) {
+            val parts = current.split("-")
+            cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+        }
+        DatePickerDialog(
+            this,
+            { _, year, month, day ->
+                binding.etDate.setText(
+                    "%04d-%02d-%02d".format(year, month + 1, day)
+                )
+            },
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH),
+            cal.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 
     private fun currentPayerId(): String? {

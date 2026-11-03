@@ -1,5 +1,6 @@
 package com.splitsmart.app.ui
 
+import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
@@ -11,6 +12,7 @@ import com.splitsmart.app.business.BalanceManager
 import com.splitsmart.app.business.SettlementManager
 import com.splitsmart.app.data.UserRepository
 import com.splitsmart.app.databinding.ActivityCreateSettlementBinding
+import java.util.Calendar
 
 class CreateSettlementActivity : AppCompatActivity() {
     private lateinit var binding: ActivityCreateSettlementBinding
@@ -36,10 +38,29 @@ class CreateSettlementActivity : AppCompatActivity() {
             return
         }
         binding.etDate.setText(todayIso())
-        binding.etDate.isEnabled = false
         binding.etDate.isFocusable = false
+        binding.etDate.isClickable = true
+        binding.etDate.setOnClickListener { showDatePicker() }
         binding.btnSave.setOnClickListener { save() }
         loadCreditors()
+    }
+
+    private fun showDatePicker() {
+        val cal = Calendar.getInstance()
+        val current = binding.etDate.text?.toString().orEmpty()
+        if (current.matches(Regex("^\\d{4}-\\d{2}-\\d{2}$"))) {
+            val parts = current.split("-")
+            cal.set(parts[0].toInt(), parts[1].toInt() - 1, parts[2].toInt())
+        }
+        DatePickerDialog(
+            this,
+            { _, year, month, day ->
+                binding.etDate.setText("%04d-%02d-%02d".format(year, month + 1, day))
+            },
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH),
+            cal.get(Calendar.DAY_OF_MONTH)
+        ).show()
     }
 
     private fun loadCreditors() {

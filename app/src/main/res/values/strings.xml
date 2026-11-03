@@ -21,7 +21,7 @@
     <string name="save">Save</string>
     <string name="amount">Amount</string>
     <string name="title">Title</string>
-    <string name="date">Date (YYYY-MM-DD)</string>
+    <string name="date">Date (tap to change)</string>
     <string name="note">Note</string>
     <string name="category">Category</string>
     <string name="split_method">Split method</string>
