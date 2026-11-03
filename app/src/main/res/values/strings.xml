@@ -79,4 +79,24 @@ Try another search or filter.</string>
     <string name="spending_by_category">Spending by category</string>
     <string name="spending_by_payer">Paid by member</string>
     <string name="payer_insights">Spending differences</string>
+    <string name="tab_groups">Groups</string>
+    <string name="tab_friends">Friends</string>
+    <string name="tab_activity">Activity</string>
+    <string name="your_friends">Your friends</string>
+    <string name="friends_subtitle">See who you owe — and who owes you.</string>
+    <string name="your_activity">Activity</string>
+    <string name="activity_subtitle">Everything that involves you, across groups.</string>
+    <string name="no_friends">No friends yet.
+Tap + to add someone by USC email.</string>
+    <string name="no_activity">Nothing here yet.
+Add an expense or settlement to see activity.</string>
+    <string name="add_friend">Add friend</string>
+    <string name="friend_email">Friend USC email</string>
+    <string name="add_friends_to_group">Add friends</string>
+    <string name="add_friends_to_group_hint">Add friends first on the Friends tab, then select them here.</string>
+    <string name="add_from_friends">Add from friends</string>
+    <string name="no_friends_to_add">All your friends are already in this group.</string>
+    <string name="settled_up">Settled up</string>
+    <string name="owes_you">owes you %1$s</string>
+    <string name="you_owe_amount">you owe %1$s</string>
 </resources>

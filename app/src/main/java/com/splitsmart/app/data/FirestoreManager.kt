@@ -11,6 +11,7 @@ class FirestoreManager(
     fun groups() = db.collection(COLLECTION_GROUPS)
     fun expenses() = db.collection(COLLECTION_EXPENSES)
     fun settlements() = db.collection(COLLECTION_SETTLEMENTS)
+    fun friendships() = db.collection(COLLECTION_FRIENDSHIPS)
 
     suspend fun getDocument(collection: String, id: String): Map<String, Any?>? {
         val snapshot = db.collection(collection).document(id).get().await()
@@ -74,6 +75,7 @@ class FirestoreManager(
         const val COLLECTION_GROUPS = "groups"
         const val COLLECTION_EXPENSES = "expenses"
         const val COLLECTION_SETTLEMENTS = "settlements"
+        const val COLLECTION_FRIENDSHIPS = "friendships"
 
         @Volatile
         private var instance: FirestoreManager? = null

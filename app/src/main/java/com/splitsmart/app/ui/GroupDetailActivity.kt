@@ -4,17 +4,21 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.splitsmart.app.business.AccountManager
+import com.splitsmart.app.business.FriendManager
 import com.splitsmart.app.business.GroupManager
 import com.splitsmart.app.data.UserRepository
 import com.splitsmart.app.databinding.ActivityGroupDetailBinding
 import com.splitsmart.app.databinding.ItemGroupMemberBinding
 import com.splitsmart.app.model.Group
+import com.splitsmart.app.model.User
 
 class GroupDetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGroupDetailBinding
     private val groupManager = GroupManager.getInstance()
+    private val friendManager = FriendManager.getInstance()
     private val userRepository = UserRepository.getInstance()
     private val accountManager = AccountManager.getInstance()
     private lateinit var groupId: String
@@ -33,7 +37,8 @@ class GroupDetailActivity : AppCompatActivity() {
             return
         }
 
-        binding.btnAddMember.setOnClickListener { addMember() }
+        binding.btnAddMember.setOnClickListener { addMemberByEmail() }
+        binding.btnAddFromFriends.setOnClickListener { showAddFriendsDialog() }
         binding.btnLeaveGroup.setOnClickListener { leaveGroup() }
         binding.btnAddExpense.setOnClickListener {
             startActivity(
@@ -95,6 +100,7 @@ class GroupDetailActivity : AppCompatActivity() {
                 binding.tvGroupAvatar.text = initials(g.name)
                 binding.btnEditGroup.visibility = if (isOwner) View.VISIBLE else View.GONE
                 binding.layoutAddMember.visibility = if (isOwner) View.VISIBLE else View.GONE
+                binding.btnAddFromFriends.visibility = if (isOwner) View.VISIBLE else View.GONE
                 binding.btnLeaveGroup.visibility =
                     if (isMember && !isOwner) View.VISIBLE else View.GONE
                 renderMembers(members, isOwner, g.ownerId)
@@ -127,7 +133,7 @@ class GroupDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun addMember() {
+    private fun addMemberByEmail() {
         val email = binding.etMemberEmail.text?.toString().orEmpty()
         binding.progress.visibility = View.VISIBLE
         launchIo(onError = {
@@ -139,6 +145,54 @@ class GroupDetailActivity : AppCompatActivity() {
                 binding.progress.visibility = View.GONE
                 binding.etMemberEmail.setText("")
                 toast("Member added")
+                loadGroup()
+            }
+        }
+    }
+
+    private fun showAddFriendsDialog() {
+        val current = group ?: return
+        binding.progress.visibility = View.VISIBLE
+        launchIo(onError = {
+            binding.progress.visibility = View.GONE
+            toast(it)
+        }) {
+            val candidates = friendManager.listFriends()
+                .filter { it.uid !in current.memberIds }
+            runOnUiThread {
+                binding.progress.visibility = View.GONE
+                if (candidates.isEmpty()) {
+                    toast(getString(com.splitsmart.app.R.string.no_friends_to_add))
+                    return@runOnUiThread
+                }
+                val labels = candidates.map { "${it.name} (${it.email})" }.toTypedArray()
+                val checked = BooleanArray(candidates.size)
+                AlertDialog.Builder(this@GroupDetailActivity)
+                    .setTitle(com.splitsmart.app.R.string.add_from_friends)
+                    .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
+                        checked[which] = isChecked
+                    }
+                    .setPositiveButton(com.splitsmart.app.R.string.add_short) { _, _ ->
+                        val selected = candidates.filterIndexed { index, _ -> checked[index] }
+                        addFriendsToGroup(selected)
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+        }
+    }
+
+    private fun addFriendsToGroup(friends: List<User>) {
+        if (friends.isEmpty()) return
+        binding.progress.visibility = View.VISIBLE
+        launchIo(onError = {
+            binding.progress.visibility = View.GONE
+            toast(it)
+        }) {
+            friends.forEach { groupManager.addMemberByUid(groupId, it.uid) }
+            runOnUiThread {
+                binding.progress.visibility = View.GONE
+                toast("Added ${friends.size} friend(s)")
                 loadGroup()
             }
         }

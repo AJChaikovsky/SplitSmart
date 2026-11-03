@@ -25,6 +25,14 @@
         <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="16dp" app:cardElevation="0dp" app:cardBackgroundColor="@color/surface" app:strokeColor="@color/divider" app:strokeWidth="1dp">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="18dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/llMemberList" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddFromFriends"
+                    style="@style/Widget.SplitSmart.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/add_from_friends"
+                    android:visibility="gone" />
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp" android:gravity="center_vertical" android:id="@+id/layoutAddMember">
                     <com.google.android.material.textfield.TextInputLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/member_email">
                         <com.google.android.material.textfield.TextInputEditText android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textEmailAddress" android:id="@+id/etMemberEmail" />

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_groups"
+        android:icon="@drawable/ic_split"
+        android:title="@string/tab_groups" />
+    <item
+        android:id="@+id/nav_friends"
+        android:icon="@drawable/ic_person"
+        android:title="@string/tab_friends" />
+    <item
+        android:id="@+id/nav_activity"
+        android:icon="@drawable/ic_history"
+        android:title="@string/tab_activity" />
+</menu>

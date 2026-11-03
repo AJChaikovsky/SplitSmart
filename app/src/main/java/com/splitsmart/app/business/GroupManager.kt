@@ -13,20 +13,51 @@ class GroupManager(
     private val settlementRepository: SettlementRepository = SettlementRepository.getInstance(),
     private val accountManager: AccountManager = AccountManager.getInstance()
 ) {
-    suspend fun createGroup(name: String, description: String): Group {
+    suspend fun createGroup(
+        name: String,
+        description: String,
+        additionalMemberIds: List<String> = emptyList()
+    ): Group {
         require(name.isNotBlank()) { "Group name is required" }
         val current = accountManager.getCurrentUser()
             ?: throw IllegalStateException("Not logged in")
+
+        val extraUsers = additionalMemberIds
+            .distinct()
+            .filter { it != current.uid }
+            .mapNotNull { userRepository.getById(it) }
+
+        val memberIds = listOf(current.uid) + extraUsers.map { it.uid }
+        val memberEmails = listOf(current.email) + extraUsers.map { it.email }
 
         val group = Group(
             name = name.trim(),
             description = description.trim(),
             ownerId = current.uid,
-            memberEmails = listOf(current.email),
-            memberIds = listOf(current.uid),
+            memberEmails = memberEmails,
+            memberIds = memberIds,
             createdAt = System.currentTimeMillis()
         )
         return groupRepository.save(group)
+    }
+
+    suspend fun addMemberByUid(groupId: String, memberUid: String): Group {
+        val group = groupRepository.getById(groupId)
+            ?: throw IllegalArgumentException("Group not found")
+        val currentUid = accountManager.currentUid()
+            ?: throw IllegalStateException("Not logged in")
+        require(group.ownerId == currentUid) { "Only the group owner can add members" }
+        require(memberUid !in group.memberIds) { "User is already a member" }
+
+        val user = userRepository.getById(memberUid)
+            ?: throw IllegalArgumentException("User not found")
+
+        return groupRepository.save(
+            group.copy(
+                memberEmails = group.memberEmails + user.email,
+                memberIds = group.memberIds + user.uid
+            )
+        )
     }
 
     suspend fun addMemberByEmail(groupId: String, email: String): Group {
