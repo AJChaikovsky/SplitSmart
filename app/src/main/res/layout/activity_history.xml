@@ -44,6 +44,12 @@
             android:layout_weight="1" />
     </LinearLayout>
 
+    <Spinner
+        android:id="@+id/spMember"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="4dp" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnApply"
         android:layout_width="match_parent"

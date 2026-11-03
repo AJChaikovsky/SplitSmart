@@ -7,6 +7,7 @@ import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.splitsmart.app.R
 import com.splitsmart.app.business.ExpenseManager
@@ -14,6 +15,7 @@ import com.splitsmart.app.business.GroupManager
 import com.splitsmart.app.data.UserRepository
 import com.splitsmart.app.databinding.ActivityCreateExpenseBinding
 import com.splitsmart.app.model.ExpenseCategory
+import com.splitsmart.app.model.ExpenseShare
 import com.splitsmart.app.model.SplitMethod
 import com.splitsmart.app.model.User
 
@@ -37,17 +39,32 @@ class CreateExpenseActivity : AppCompatActivity() {
 
         groupId = intent.getStringExtra(HomeActivity.EXTRA_GROUP_ID).orEmpty()
         editingExpenseId = intent.getStringExtra(EXTRA_EXPENSE_ID)
-        supportActionBar?.title = if (editingExpenseId == null) getString(R.string.add_expense) else "Edit Expense"
+        supportActionBar?.title =
+            if (editingExpenseId == null) getString(R.string.add_expense) else "Edit Expense"
 
+        // Date is auto-recorded; users do not edit it.
         binding.etDate.setText(todayIso())
+        binding.etDate.isEnabled = false
+        binding.etDate.isFocusable = false
+
         binding.spCategory.adapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_dropdown_item, ExpenseCategory.entries.map { it.name }
         )
+        binding.spCategory.setSelection(ExpenseCategory.OTHER.ordinal)
+
         binding.spSplitMethod.adapter = ArrayAdapter(
             this, android.R.layout.simple_spinner_dropdown_item, SplitMethod.entries.map { it.name }
         )
 
-        binding.spSplitMethod.setOnItemSelectedListenerSimple { rebuildSplitValueInputs() }
+        binding.spSplitMethod.setOnItemSelectedListenerSimple {
+            rebuildSplitValueInputs()
+            updateSharePreview()
+        }
+        binding.spPayer.setOnItemSelectedListenerSimple {
+            lockPayerAsParticipant()
+            rebuildSplitValueInputs()
+            updateSharePreview()
+        }
 
         binding.btnSave.setOnClickListener { save() }
         loadMembers()
@@ -72,7 +89,17 @@ class CreateExpenseActivity : AppCompatActivity() {
                     val cb = CheckBox(this@CreateExpenseActivity).apply {
                         text = "${user.name} (${user.email})"
                         isChecked = existing?.participantIds?.contains(user.uid) != false
-                        setOnCheckedChangeListener { _, _ -> rebuildSplitValueInputs() }
+                        setOnCheckedChangeListener { button, checked ->
+                            val payerId = currentPayerId()
+                            if (payerId != null && user.uid == payerId && !checked) {
+                                // Payer cannot be deselected.
+                                button.isChecked = true
+                                toast("Payer must remain a participant")
+                                return@setOnCheckedChangeListener
+                            }
+                            rebuildSplitValueInputs()
+                            updateSharePreview()
+                        }
                     }
                     participantChecks[user.uid] = cb
                     binding.llParticipants.addView(cb)
@@ -82,24 +109,54 @@ class CreateExpenseActivity : AppCompatActivity() {
                     binding.etAmount.setText(exp.amount.toString())
                     binding.etDate.setText(exp.date)
                     binding.etNote.setText(exp.note)
-                    binding.spCategory.setSelection(ExpenseCategory.entries.indexOf(exp.categoryEnum()).coerceAtLeast(0))
-                    binding.spSplitMethod.setSelection(SplitMethod.entries.indexOf(exp.splitMethodEnum()).coerceAtLeast(0))
+                    binding.spCategory.setSelection(
+                        ExpenseCategory.entries.indexOf(exp.categoryEnum()).coerceAtLeast(0)
+                    )
+                    binding.spSplitMethod.setSelection(
+                        SplitMethod.entries.indexOf(exp.splitMethodEnum()).coerceAtLeast(0)
+                    )
                     val payerIndex = members.indexOfFirst { it.uid == exp.payerId }
                     if (payerIndex >= 0) binding.spPayer.setSelection(payerIndex)
                 }
+                lockPayerAsParticipant()
                 rebuildSplitValueInputs()
+                updateSharePreview()
             }
         }
     }
 
-    private fun selectedParticipants(): List<String> =
-        participantChecks.filter { it.value.isChecked }.keys.toList()
+    private fun currentPayerId(): String? {
+        if (members.isEmpty() || binding.spPayer.selectedItemPosition < 0) return null
+        return members[binding.spPayer.selectedItemPosition].uid
+    }
+
+    private fun lockPayerAsParticipant() {
+        val payerId = currentPayerId() ?: return
+        participantChecks[payerId]?.let { cb ->
+            cb.isChecked = true
+            cb.isEnabled = false
+        }
+        participantChecks.forEach { (uid, cb) ->
+            if (uid != payerId) cb.isEnabled = true
+        }
+    }
+
+    private fun selectedParticipants(): List<String> {
+        val payerId = currentPayerId()
+        val selected = participantChecks.filter { it.value.isChecked }.keys.toMutableList()
+        if (payerId != null && payerId !in selected) selected.add(0, payerId)
+        return selected
+    }
 
     private fun rebuildSplitValueInputs() {
         binding.llSplitValues.removeAllViews()
         valueInputs.clear()
+        if (binding.spSplitMethod.selectedItemPosition < 0) return
         val method = SplitMethod.entries[binding.spSplitMethod.selectedItemPosition]
-        if (method == SplitMethod.EQUAL) return
+        if (method == SplitMethod.EQUAL) {
+            updateSharePreview()
+            return
+        }
 
         val label = TextView(this).apply {
             text = if (method == SplitMethod.EXACT) "Exact amounts" else "Percentages"
@@ -121,32 +178,17 @@ class CreateExpenseActivity : AppCompatActivity() {
                 inputType = android.text.InputType.TYPE_CLASS_NUMBER or
                     android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                setOnFocusChangeListener { _, _ -> updateSharePreview() }
             }
             valueInputs[uid] = et
             row.addView(tv)
             row.addView(et)
             binding.llSplitValues.addView(row)
         }
+        updateSharePreview()
     }
 
-    private fun save() {
-        val title = binding.etTitle.text?.toString().orEmpty()
-        val amount = binding.etAmount.text?.toString()?.toDoubleOrNull()
-        if (amount == null) {
-            toast("Enter a valid amount")
-            return
-        }
-        val date = binding.etDate.text?.toString().orEmpty()
-        val note = binding.etNote.text?.toString().orEmpty()
-        val category = ExpenseCategory.entries[binding.spCategory.selectedItemPosition]
-        val method = SplitMethod.entries[binding.spSplitMethod.selectedItemPosition]
-        val participants = selectedParticipants()
-        if (members.isEmpty() || binding.spPayer.selectedItemPosition < 0) {
-            toast("No members loaded")
-            return
-        }
-        val payerId = members[binding.spPayer.selectedItemPosition].uid
-
+    private fun buildExactAndPercentMaps(method: SplitMethod): Pair<Map<String, Double>, Map<String, Double>> {
         val exact = mutableMapOf<String, Double>()
         val pct = mutableMapOf<String, Double>()
         if (method == SplitMethod.EXACT) {
@@ -158,7 +200,100 @@ class CreateExpenseActivity : AppCompatActivity() {
                 pct[uid] = et.text.toString().toDoubleOrNull() ?: 0.0
             }
         }
+        return exact to pct
+    }
 
+    private fun computePreviewShares(): List<ExpenseShare>? {
+        val amount = binding.etAmount.text?.toString()?.toDoubleOrNull() ?: return null
+        if (binding.spSplitMethod.selectedItemPosition < 0) return null
+        val method = SplitMethod.entries[binding.spSplitMethod.selectedItemPosition]
+        val participants = selectedParticipants()
+        if (participants.size < 2) return null
+        val (exact, pct) = buildExactAndPercentMaps(method)
+        return try {
+            expenseManager.computeShares(amount, participants, method, exact, pct)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun updateSharePreview() {
+        val shares = computePreviewShares()
+        val existing = binding.root.findViewWithTag<TextView>("sharePreview")
+        if (existing != null) {
+            binding.llSplitValues.removeView(existing)
+        }
+        if (shares == null) return
+        val preview = TextView(this).apply {
+            tag = "sharePreview"
+            setPadding(0, 24, 0, 8)
+            text = buildString {
+                append("Assigned shares:\n")
+                shares.forEach { share ->
+                    val name = members.find { it.uid == share.userId }?.name ?: share.userId
+                    append("• $name: ${formatMoney(share.amount)}\n")
+                }
+            }
+        }
+        binding.llSplitValues.addView(preview)
+    }
+
+    private fun save() {
+        val title = binding.etTitle.text?.toString().orEmpty()
+        val amount = binding.etAmount.text?.toString()?.toDoubleOrNull()
+        if (amount == null) {
+            toast("Enter a valid amount")
+            return
+        }
+        val date = todayIso()
+        binding.etDate.setText(date)
+        val note = binding.etNote.text?.toString().orEmpty()
+        val category = ExpenseCategory.entries[binding.spCategory.selectedItemPosition]
+        val method = SplitMethod.entries[binding.spSplitMethod.selectedItemPosition]
+        val participants = selectedParticipants()
+        if (members.isEmpty() || binding.spPayer.selectedItemPosition < 0) {
+            toast("No members loaded")
+            return
+        }
+        val payerId = members[binding.spPayer.selectedItemPosition].uid
+        val (exact, pct) = buildExactAndPercentMaps(method)
+
+        val shares = try {
+            expenseManager.validateExpenseInput(amount, payerId, participants, members.map { it.uid })
+            expenseManager.computeShares(amount, participants, method, exact, pct)
+        } catch (e: Exception) {
+            toast(e.message ?: "Invalid split")
+            return
+        }
+
+        val message = buildString {
+            append("Confirm shares (must sum to ${formatMoney(amount)}):\n\n")
+            shares.forEach { share ->
+                val name = members.find { it.uid == share.userId }?.name ?: share.userId
+                append("$name: ${formatMoney(share.amount)}\n")
+            }
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Review shares")
+            .setMessage(message)
+            .setPositiveButton("Save") { _, _ -> persist(title, amount, date, category, payerId, participants, method, note, exact, pct) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun persist(
+        title: String,
+        amount: Double,
+        date: String,
+        category: ExpenseCategory,
+        payerId: String,
+        participants: List<String>,
+        method: SplitMethod,
+        note: String,
+        exact: Map<String, Double>,
+        pct: Map<String, Double>
+    ) {
         binding.progress.visibility = View.VISIBLE
         launchIo(onError = {
             binding.progress.visibility = View.GONE

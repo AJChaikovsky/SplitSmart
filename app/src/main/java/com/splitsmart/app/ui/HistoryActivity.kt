@@ -11,16 +11,23 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.splitsmart.app.R
+import com.splitsmart.app.business.GroupManager
 import com.splitsmart.app.business.HistoryManager
+import com.splitsmart.app.data.UserRepository
 import com.splitsmart.app.databinding.ActivityHistoryBinding
 import com.splitsmart.app.model.ExpenseCategory
 import com.splitsmart.app.model.Transaction
 import com.splitsmart.app.model.TransactionType
+import com.splitsmart.app.model.User
 
 class HistoryActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHistoryBinding
     private val historyManager = HistoryManager.getInstance()
+    private val groupManager = GroupManager.getInstance()
+    private val userRepository = UserRepository.getInstance()
     private lateinit var groupId: String
+    private var members: List<User> = emptyList()
+    private var memberLabels: List<String> = listOf("ALL members")
 
     private val adapter = object : RecyclerView.Adapter<VH>() {
         private val items = mutableListOf<Transaction>()
@@ -76,8 +83,11 @@ class HistoryActivity : AppCompatActivity() {
         binding.spCategory.adapter =
             ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, categories)
         binding.spSort.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, sorts)
+        binding.spMember.adapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, memberLabels)
 
         binding.btnApply.setOnClickListener { load() }
+        loadMembers()
     }
 
     override fun onResume() {
@@ -85,14 +95,36 @@ class HistoryActivity : AppCompatActivity() {
         load()
     }
 
+    private fun loadMembers() {
+        launchIo {
+            val group = groupManager.getGroup(groupId)
+            members = group.memberIds.mapNotNull { userRepository.getById(it) }
+            memberLabels = listOf("ALL members") + members.map { "${it.name} (${it.email})" }
+            runOnUiThread {
+                binding.spMember.adapter = ArrayAdapter(
+                    this@HistoryActivity,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    memberLabels
+                )
+            }
+        }
+    }
+
     private fun load() {
         val typeSel = binding.spType.selectedItem?.toString()
         val catSel = binding.spCategory.selectedItem?.toString()
         val sortSel = binding.spSort.selectedItem?.toString() ?: "NEWEST"
+        val memberPos = binding.spMember.selectedItemPosition
+        val memberId = if (memberPos > 0 && memberPos - 1 < members.size) {
+            members[memberPos - 1].uid
+        } else {
+            null
+        }
         val filter = HistoryManager.HistoryFilter(
             keyword = binding.etSearch.text?.toString(),
             type = typeSel?.takeIf { it != "ALL" }?.let { TransactionType.valueOf(it) },
             category = catSel?.takeIf { it != "ALL" }?.let { ExpenseCategory.valueOf(it) },
+            memberId = memberId,
             sortOrder = if (sortSel == "OLDEST") HistoryManager.SortOrder.OLDEST
             else HistoryManager.SortOrder.NEWEST
         )

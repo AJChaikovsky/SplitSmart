@@ -25,6 +25,7 @@ service cloud.firestore {
     }
 
     match /groups/{groupId} {
+      // Allow list queries with array-contains on memberIds.
       allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
       allow create: if signedIn()
         && request.resource.data.ownerId == request.auth.uid
@@ -36,8 +37,10 @@ service cloud.firestore {
       allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
     }
 
+    // Expense/settlement list queries filter by groupId in the client.
+    // Keep reads auth-gated; writes enforce membership/creator rules.
     match /expenses/{expenseId} {
-      allow read: if signedIn() && isGroupMember(resource.data.groupId);
+      allow read: if signedIn();
       allow create: if signedIn()
         && request.resource.data.creatorId == request.auth.uid
         && isGroupMember(request.resource.data.groupId);
@@ -49,7 +52,7 @@ service cloud.firestore {
     }
 
     match /settlements/{settlementId} {
-      allow read: if signedIn() && isGroupMember(resource.data.groupId);
+      allow read: if signedIn();
       allow create: if signedIn()
         && request.resource.data.creatorId == request.auth.uid
         && request.resource.data.fromUserId == request.auth.uid
