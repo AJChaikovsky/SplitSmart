@@ -32,7 +32,6 @@ class HomeActivity : AppCompatActivity() {
         }
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        supportActionBar?.title = getString(R.string.app_name)
 
         binding.rvGroups.layoutManager = LinearLayoutManager(this)
         binding.rvGroups.adapter = adapter
@@ -50,9 +49,14 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun loadGroups() {
-        launchIo {
+        binding.progress.visibility = View.VISIBLE
+        launchIo(onError = {
+            binding.progress.visibility = View.GONE
+            toast(it)
+        }) {
             val groups = groupManager.listGroupsForCurrentUser()
             runOnUiThread {
+                binding.progress.visibility = View.GONE
                 adapter.submit(groups)
                 binding.tvEmpty.visibility = if (groups.isEmpty()) View.VISIBLE else View.GONE
             }
@@ -84,12 +88,14 @@ class HomeActivity : AppCompatActivity() {
         override fun onBindViewHolder(holder: VH, position: Int) {
             val g = items[position]
             holder.name.text = g.name
-            holder.description.text = g.description.ifBlank { "No description" }
-            holder.members.text = "${g.memberIds.size} member(s)"
+            holder.description.text = g.description.ifBlank { holder.itemView.context.getString(R.string.group_fallback) }
+            holder.members.text = holder.itemView.resources.getQuantityString(R.plurals.group_members, g.memberIds.size, g.memberIds.size)
+            holder.avatar.text = initials(g.name)
             holder.itemView.setOnClickListener { onClick(g) }
         }
 
         class VH(view: View) : RecyclerView.ViewHolder(view) {
+            val avatar: TextView = view.findViewById(R.id.tvAvatar)
             val name: TextView = view.findViewById(R.id.tvName)
             val description: TextView = view.findViewById(R.id.tvDescription)
             val members: TextView = view.findViewById(R.id.tvMembers)

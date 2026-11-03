@@ -3,6 +3,7 @@ package com.splitsmart.app.ui
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.splitsmart.app.R
 import com.splitsmart.app.business.AccountManager
@@ -75,9 +76,8 @@ class GroupDetailActivity : AppCompatActivity() {
         launchIo {
             val g = groupManager.getGroup(groupId)
             group = g
-            val names = g.memberIds.map { uid ->
-                val user = userRepository.getById(uid)
-                "${user?.name ?: uid} (${user?.email ?: ""})"
+            val members = g.memberIds.map { uid ->
+                userRepository.getById(uid)
             }
             val isOwner = g.ownerId == accountManager.currentUid()
             runOnUiThread {
@@ -85,7 +85,16 @@ class GroupDetailActivity : AppCompatActivity() {
                 supportActionBar?.title = g.name
                 binding.tvName.text = g.name
                 binding.tvDescription.text = g.description.ifBlank { "No description" }
-                binding.tvMembers.text = names.joinToString("\n")
+                binding.tvGroupAvatar.text = initials(g.name)
+                binding.llMemberList.removeAllViews()
+                members.forEachIndexed { index, user ->
+                    val row = layoutInflater.inflate(R.layout.item_member, binding.llMemberList, false)
+                    val name = user?.name?.takeIf { it.isNotBlank() } ?: g.memberIds[index]
+                    row.findViewById<TextView>(R.id.tvAvatar).text = initials(name)
+                    row.findViewById<TextView>(R.id.tvMemberName).text = name
+                    row.findViewById<TextView>(R.id.tvMemberEmail).text = user?.email.orEmpty()
+                    binding.llMemberList.addView(row)
+                }
                 binding.btnEditGroup.visibility = if (isOwner) View.VISIBLE else View.GONE
                 binding.btnAddMember.isEnabled = isOwner
             }

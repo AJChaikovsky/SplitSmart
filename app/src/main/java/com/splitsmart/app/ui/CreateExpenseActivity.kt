@@ -2,13 +2,13 @@ package com.splitsmart.app.ui
 
 import android.os.Bundle
 import android.view.View
-import android.widget.ArrayAdapter
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.checkbox.MaterialCheckBox
 import com.splitsmart.app.R
 import com.splitsmart.app.business.ExpenseManager
 import com.splitsmart.app.business.GroupManager
@@ -47,14 +47,10 @@ class CreateExpenseActivity : AppCompatActivity() {
         binding.etDate.isEnabled = false
         binding.etDate.isFocusable = false
 
-        binding.spCategory.adapter = ArrayAdapter(
-            this, android.R.layout.simple_spinner_dropdown_item, ExpenseCategory.entries.map { it.name }
-        )
+        binding.spCategory.adapter = this.choiceAdapter(ExpenseCategory.entries.map { it.name })
         binding.spCategory.setSelection(ExpenseCategory.OTHER.ordinal)
 
-        binding.spSplitMethod.adapter = ArrayAdapter(
-            this, android.R.layout.simple_spinner_dropdown_item, SplitMethod.entries.map { it.name }
-        )
+        binding.spSplitMethod.adapter = this.choiceAdapter(SplitMethod.entries.map { it.name })
 
         binding.spSplitMethod.setOnItemSelectedListenerSimple {
             rebuildSplitValueInputs()
@@ -78,15 +74,11 @@ class CreateExpenseActivity : AppCompatActivity() {
             val existing = editingExpenseId?.let { expenseManager.getExpense(it) }
             runOnUiThread {
                 binding.progress.visibility = View.GONE
-                binding.spPayer.adapter = ArrayAdapter(
-                    this@CreateExpenseActivity,
-                    android.R.layout.simple_spinner_dropdown_item,
-                    members.map { "${it.name} (${it.email})" }
-                )
+                binding.spPayer.adapter = this@CreateExpenseActivity.choiceAdapter(members.map { "${it.name} (${it.email})" })
                 binding.llParticipants.removeAllViews()
                 participantChecks.clear()
                 members.forEach { user ->
-                    val cb = CheckBox(this@CreateExpenseActivity).apply {
+                    val cb = MaterialCheckBox(this@CreateExpenseActivity).apply {
                         text = "${user.name} (${user.email})"
                         isChecked = existing?.participantIds?.contains(user.uid) != false
                         setOnCheckedChangeListener { button, checked ->
@@ -160,7 +152,8 @@ class CreateExpenseActivity : AppCompatActivity() {
 
         val label = TextView(this).apply {
             text = if (method == SplitMethod.EXACT) "Exact amounts" else "Percentages"
-            setPadding(0, 16, 0, 8)
+            setTextAppearance(R.style.TextAppearance_SplitSmart_Section)
+            setPadding(0, dp(16), 0, dp(8))
         }
         binding.llSplitValues.addView(label)
 
@@ -168,12 +161,19 @@ class CreateExpenseActivity : AppCompatActivity() {
             val user = members.find { it.uid == uid } ?: return@forEach
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setPadding(0, dp(4), 0, dp(4))
             }
             val tv = TextView(this).apply {
                 text = user.name
+                setTextAppearance(R.style.TextAppearance_SplitSmart_Body)
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             }
             val et = EditText(this).apply {
+                setBackgroundResource(R.drawable.background_card)
+                setPadding(dp(12), dp(12), dp(12), dp(12))
+                minHeight = dp(48)
+                textSize = 14f
                 hint = if (method == SplitMethod.EXACT) "0.00" else "%"
                 inputType = android.text.InputType.TYPE_CLASS_NUMBER or
                     android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
@@ -226,7 +226,12 @@ class CreateExpenseActivity : AppCompatActivity() {
         if (shares == null) return
         val preview = TextView(this).apply {
             tag = "sharePreview"
-            setPadding(0, 24, 0, 8)
+            setTextAppearance(R.style.TextAppearance_SplitSmart_Body)
+            setBackgroundResource(R.drawable.background_preview)
+            setPadding(dp(16), dp(16), dp(16), dp(16))
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                topMargin = dp(16)
+            }
             text = buildString {
                 append("Assigned shares:\n")
                 shares.forEach { share ->

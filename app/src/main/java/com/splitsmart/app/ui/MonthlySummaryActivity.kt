@@ -2,6 +2,7 @@ package com.splitsmart.app.ui
 
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.splitsmart.app.R
 import com.splitsmart.app.business.SummaryManager
@@ -43,19 +44,22 @@ class MonthlySummaryActivity : AppCompatActivity() {
             val summary = summaryManager.getMonthlySummary(groupId, year, month)
             runOnUiThread {
                 binding.progress.visibility = View.GONE
-                if (summary.isEmpty()) {
-                    binding.tvSummary.text = getString(R.string.no_expenses_month)
+                binding.tvTotalSpending.text = formatMoney(summary.totalSpending)
+                binding.tvExpenseCount.text = resources.getQuantityString(
+                    R.plurals.expense_count, summary.expenseCount, summary.expenseCount
+                )
+                binding.tvSummary.text = if (summary.isEmpty()) {
+                    getString(R.string.no_expenses_month)
                 } else {
-                    binding.tvSummary.text = buildString {
-                        appendLine("Period: ${summary.year}-${summary.month.toString().padStart(2, '0')}")
-                        appendLine("Expenses: ${summary.expenseCount}")
-                        appendLine("Total spending: ${formatMoney(summary.totalSpending)}")
-                        appendLine()
-                        appendLine("By category:")
-                        summary.categoryTotals.forEach { (cat, total) ->
-                            appendLine("  $cat: ${formatMoney(total)}")
-                        }
-                    }
+                    "${summary.year}-${summary.month.toString().padStart(2, '0')} · By category"
+                }
+                binding.llCategoryTotals.removeAllViews()
+                binding.llCategoryTotals.visibility = if (summary.isEmpty()) View.GONE else View.VISIBLE
+                summary.categoryTotals.entries.sortedByDescending { it.value }.forEach { (category, total) ->
+                    val row = layoutInflater.inflate(R.layout.item_category_total, binding.llCategoryTotals, false)
+                    row.findViewById<TextView>(R.id.tvCategory).text = displayChoice(category)
+                    row.findViewById<TextView>(R.id.tvTotal).text = formatMoney(total)
+                    binding.llCategoryTotals.addView(row)
                 }
             }
         }

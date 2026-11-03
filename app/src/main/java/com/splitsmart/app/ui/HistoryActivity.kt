@@ -5,8 +5,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.TextView
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -27,7 +27,7 @@ class HistoryActivity : AppCompatActivity() {
     private val userRepository = UserRepository.getInstance()
     private lateinit var groupId: String
     private var members: List<User> = emptyList()
-    private var memberLabels: List<String> = listOf("ALL members")
+    private var memberLabels: List<String> = listOf("All members")
 
     private val adapter = object : RecyclerView.Adapter<VH>() {
         private val items = mutableListOf<Transaction>()
@@ -52,8 +52,16 @@ class HistoryActivity : AppCompatActivity() {
                 TransactionType.EXPENSE -> t.title
                 TransactionType.SETTLEMENT -> "Settlement"
             }
-            holder.meta.text = "${t.type} · ${t.date} · ${formatMoney(t.amount)}" +
-                if (t.category.isNotBlank()) " · ${t.category}" else ""
+            holder.meta.text = t.date
+            holder.amount.text = formatMoney(t.amount)
+            holder.category.text = if (t.type == TransactionType.SETTLEMENT) "Settlement" else displayChoice(t.category.ifBlank { "OTHER" })
+            holder.icon.setImageResource(if (t.type == TransactionType.SETTLEMENT) R.drawable.ic_swap else when (ExpenseCategory.fromString(t.category)) {
+                ExpenseCategory.FOOD -> R.drawable.ic_food
+                ExpenseCategory.HOUSING -> R.drawable.ic_house
+                ExpenseCategory.TRANSPORTATION -> R.drawable.ic_car
+                ExpenseCategory.ENTERTAINMENT -> R.drawable.ic_play
+                ExpenseCategory.OTHER -> R.drawable.ic_receipt
+            })
             holder.itemView.setOnClickListener {
                 startActivity(
                     Intent(this@HistoryActivity, TransactionDetailActivity::class.java)
@@ -79,12 +87,12 @@ class HistoryActivity : AppCompatActivity() {
         val types = listOf("ALL") + TransactionType.entries.map { it.name }
         val categories = listOf("ALL") + ExpenseCategory.entries.map { it.name }
         val sorts = listOf("NEWEST", "OLDEST")
-        binding.spType.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, types)
+        binding.spType.adapter = this.choiceAdapter(types)
         binding.spCategory.adapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, categories)
-        binding.spSort.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, sorts)
+            this.choiceAdapter(categories)
+        binding.spSort.adapter = this.choiceAdapter(sorts)
         binding.spMember.adapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, memberLabels)
+            this.choiceAdapter(memberLabels)
 
         binding.btnApply.setOnClickListener { load() }
         loadMembers()
@@ -99,13 +107,9 @@ class HistoryActivity : AppCompatActivity() {
         launchIo {
             val group = groupManager.getGroup(groupId)
             members = group.memberIds.mapNotNull { userRepository.getById(it) }
-            memberLabels = listOf("ALL members") + members.map { "${it.name} (${it.email})" }
+            memberLabels = listOf("All members") + members.map { "${it.name} (${it.email})" }
             runOnUiThread {
-                binding.spMember.adapter = ArrayAdapter(
-                    this@HistoryActivity,
-                    android.R.layout.simple_spinner_dropdown_item,
-                    memberLabels
-                )
+                binding.spMember.adapter = this@HistoryActivity.choiceAdapter(memberLabels)
             }
         }
     }
@@ -148,6 +152,9 @@ class HistoryActivity : AppCompatActivity() {
     }
 
     private class VH(view: View) : RecyclerView.ViewHolder(view) {
+        val icon: ImageView = view.findViewById(R.id.ivCategory)
+        val amount: TextView = view.findViewById(R.id.tvAmount)
+        val category: TextView = view.findViewById(R.id.tvCategory)
         val title: TextView = view.findViewById(R.id.tvTitle)
         val meta: TextView = view.findViewById(R.id.tvMeta)
     }

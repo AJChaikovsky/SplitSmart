@@ -1,64 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="16dp">
-
+        android:padding="20dp">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical">
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Your Groups"
-                android:textColor="@color/text_primary"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-
-            <ImageButton
-                android:id="@+id/btnProfile"
+                android:orientation="vertical"
+                android:layout_weight="1">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Title"
+                    android:textSize="20sp"
+                    android:text="@string/your_groups" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
+                    android:layout_marginTop="5dp"
+                    android:text="@string/groups_subtitle" />
+            </LinearLayout>
+            <androidx.appcompat.widget.AppCompatImageButton
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="12dp"
+                android:background="@drawable/background_avatar"
+                android:src="@drawable/ic_person"
+                app:tint="@color/primary"
                 android:contentDescription="@string/profile"
-                android:src="@android:drawable/ic_menu_myplaces" />
+                android:id="@+id/btnProfile" />
         </LinearLayout>
-
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="20dp"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorSize="28dp"
+            app:trackThickness="3dp"
+            app:indicatorInset="2dp" />
         <TextView
-            android:id="@+id/tvEmpty"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:textAppearance="@style/TextAppearance.SplitSmart.Body"
             android:gravity="center"
-            android:text="@string/no_groups"
+            android:padding="24dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/background_card"
             android:textColor="@color/text_secondary"
-            android:visibility="gone" />
-
+            android:visibility="gone"
+            android:text="@string/no_groups"
+            android:id="@+id/tvEmpty" />
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvGroups"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="12dp"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:layout_marginTop="16dp"
+            android:paddingBottom="88dp"
+            android:clipToPadding="false"
+            android:id="@+id/rvGroups" />
     </LinearLayout>
-
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabCreate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
+        android:layout_margin="24dp"
         android:contentDescription="@string/create_group"
-        app:srcCompat="@android:drawable/ic_input_add" />
+        app:srcCompat="@drawable/ic_plus"
+        android:id="@+id/fabCreate" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

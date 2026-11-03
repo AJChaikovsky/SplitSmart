@@ -1,0 +1,4 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/background_card" />
+    <item android:width="18dp" android:height="18dp" android:gravity="end|center_vertical" android:end="10dp" android:drawable="@drawable/ic_expand" />
+</layer-list>
