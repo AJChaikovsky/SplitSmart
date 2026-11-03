@@ -74,7 +74,7 @@ service cloud.firestore {
     }
 
     match /friendships/{friendshipId} {
-      // resource == null when the friendship doc does not exist yet (existence check before create).
+      // Allow get of missing docs (resource == null) so clients can check before create.
       allow get: if signedIn() && (
         resource == null
         || request.auth.uid in resource.data.userIds
@@ -84,7 +84,10 @@ service cloud.firestore {
         && request.auth.uid in request.resource.data.userIds
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.userIds.size() == 2;
-      allow update: if false;
+      // Idempotent re-save of an existing friendship by either member.
+      allow update: if signedIn()
+        && request.auth.uid in resource.data.userIds
+        && request.resource.data.userIds == resource.data.userIds;
       allow delete: if signedIn() && request.auth.uid in resource.data.userIds;
     }
   }

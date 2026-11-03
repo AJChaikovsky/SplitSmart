@@ -29,9 +29,10 @@ class FriendManager(
             ?: throw IllegalArgumentException("No registered user with that USC email")
 
         val id = Friendship.docIdFor(current.uid, other.uid)
-        friendRepository.getById(id)?.let {
-            throw IllegalArgumentException("You're already friends with ${other.name}")
-        }
+        // Use list query (not get-by-id) so missing docs don't hit get-on-null rules.
+        val alreadyFriends = friendRepository.listForUser(current.uid)
+            .any { friendship -> other.uid in friendship.userIds }
+        require(!alreadyFriends) { "You're already friends with ${other.name}" }
 
         return friendRepository.save(
             Friendship(
