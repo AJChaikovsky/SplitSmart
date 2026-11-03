@@ -2,12 +2,14 @@
 
 **Team 10 — SplitSmart Inc.**
 
-Android expense-splitting app for USC students. Split group expenses equally, by exact amounts, or by percentage; track pairwise balances; record settlements; and review history and monthly summaries.
+Android expense-splitting app for USC students, written in Java. Split group expenses equally, by exact amounts, or by percentage; track pairwise balances; record settlements; and review history and monthly summaries.
 
 Package: `com.splitsmart.app`  
 Min SDK 26 · Target SDK 34 · Compile SDK 36
 
 ## Architecture (layered)
+
+All app code is Java. Managers and repositories are synchronous (they block on Firebase `Task`s), so the UI always calls them through `UiUtils.launchIo` / `UiUtils.loadData`, which run the work on a background thread and deliver the result on the main thread.
 
 - **Presentation** — Activities under `ui/`
 - **Business Logic** — Managers and `SplitCalculator` implementations under `business/`
@@ -34,7 +36,7 @@ Console: https://console.firebase.google.com/project/splitsmart-team10/overview
 2. **File → Open** and select this project folder (`Project 2.3`).
 3. Let Gradle sync. Prefer **JDK 21** for Gradle  
    (`/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home` on this machine).  
-   Android Studio’s bundled JBR 25 may fail Kotlin compilation.
+   Android Studio’s bundled JBR 25 may fail the Gradle build (AGP 8.7).
 4. Connect a device or start an emulator (API 26+).
 5. Run the `app` configuration.
 
