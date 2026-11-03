@@ -1,5 +1,6 @@
 package com.splitsmart.app.data
 
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
@@ -24,6 +25,11 @@ class FirestoreManager(
 
     suspend fun updateDocument(collection: String, id: String, data: Map<String, Any?>) {
         db.collection(collection).document(id).update(data).await()
+    }
+
+    suspend fun arrayUnion(collection: String, id: String, fieldValues: Map<String, Any>) {
+        val updates = fieldValues.mapValues { (_, value) -> FieldValue.arrayUnion(value) }
+        db.collection(collection).document(id).update(updates).await()
     }
 
     suspend fun deleteDocument(collection: String, id: String) {
@@ -76,6 +82,7 @@ class FirestoreManager(
         const val COLLECTION_EXPENSES = "expenses"
         const val COLLECTION_SETTLEMENTS = "settlements"
         const val COLLECTION_FRIENDSHIPS = "friendships"
+        const val COLLECTION_REQUESTS = "requests"
 
         @Volatile
         private var instance: FirestoreManager? = null

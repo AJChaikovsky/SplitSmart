@@ -134,6 +134,34 @@
                     android:paddingBottom="96dp" />
             </LinearLayout>
 
+            <!-- Requests -->
+            <LinearLayout
+                android:id="@+id/panelRequests"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvEmptyRequests"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/background_card"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:text="@string/no_requests"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Body"
+                    android:textColor="@color/text_secondary"
+                    android:visibility="gone" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRequests"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingBottom="24dp" />
+            </LinearLayout>
+
             <!-- Activity -->
             <LinearLayout
                 android:id="@+id/panelActivity"

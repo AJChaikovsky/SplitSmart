@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.splitsmart.app.R
 import com.splitsmart.app.business.AccountManager
 import com.splitsmart.app.business.FriendManager
 import com.splitsmart.app.business.GroupManager
@@ -37,8 +38,8 @@ class GroupDetailActivity : AppCompatActivity() {
             return
         }
 
-        binding.btnAddMember.setOnClickListener { addMemberByEmail() }
-        binding.btnAddFromFriends.setOnClickListener { showAddFriendsDialog() }
+        binding.btnAddMember.setOnClickListener { inviteMemberByEmail() }
+        binding.btnAddFromFriends.setOnClickListener { showInviteFriendsDialog() }
         binding.btnLeaveGroup.setOnClickListener { leaveGroup() }
         binding.btnAddExpense.setOnClickListener {
             startActivity(
@@ -133,24 +134,23 @@ class GroupDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun addMemberByEmail() {
+    private fun inviteMemberByEmail() {
         val email = binding.etMemberEmail.text?.toString().orEmpty()
         binding.progress.visibility = View.VISIBLE
         launchIo(onError = {
             binding.progress.visibility = View.GONE
             toast(it)
         }) {
-            groupManager.addMemberByEmail(groupId, email)
+            groupManager.inviteMemberByEmail(groupId, email)
             runOnUiThread {
                 binding.progress.visibility = View.GONE
                 binding.etMemberEmail.setText("")
-                toast("Member added")
-                loadGroup()
+                toast(getString(R.string.group_invite_sent))
             }
         }
     }
 
-    private fun showAddFriendsDialog() {
+    private fun showInviteFriendsDialog() {
         val current = group ?: return
         binding.progress.visibility = View.VISIBLE
         launchIo(onError = {
@@ -162,19 +162,19 @@ class GroupDetailActivity : AppCompatActivity() {
             runOnUiThread {
                 binding.progress.visibility = View.GONE
                 if (candidates.isEmpty()) {
-                    toast(getString(com.splitsmart.app.R.string.no_friends_to_add))
+                    toast(getString(R.string.no_friends_to_add))
                     return@runOnUiThread
                 }
                 val labels = candidates.map { "${it.name} (${it.email})" }.toTypedArray()
                 val checked = BooleanArray(candidates.size)
                 AlertDialog.Builder(this@GroupDetailActivity)
-                    .setTitle(com.splitsmart.app.R.string.add_from_friends)
+                    .setTitle(R.string.add_from_friends)
                     .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
                         checked[which] = isChecked
                     }
-                    .setPositiveButton(com.splitsmart.app.R.string.add_short) { _, _ ->
+                    .setPositiveButton(R.string.add_short) { _, _ ->
                         val selected = candidates.filterIndexed { index, _ -> checked[index] }
-                        addFriendsToGroup(selected)
+                        inviteFriendsToGroup(selected)
                     }
                     .setNegativeButton(android.R.string.cancel, null)
                     .show()
@@ -182,18 +182,25 @@ class GroupDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun addFriendsToGroup(friends: List<User>) {
+    private fun inviteFriendsToGroup(friends: List<User>) {
         if (friends.isEmpty()) return
         binding.progress.visibility = View.VISIBLE
         launchIo(onError = {
             binding.progress.visibility = View.GONE
             toast(it)
         }) {
-            friends.forEach { groupManager.addMemberByUid(groupId, it.uid) }
+            var sent = 0
+            friends.forEach { friend ->
+                try {
+                    groupManager.inviteMemberByUid(groupId, friend.uid)
+                    sent++
+                } catch (_: Exception) {
+                    // Skip duplicates / already pending; continue inviting others.
+                }
+            }
             runOnUiThread {
                 binding.progress.visibility = View.GONE
-                toast("Added ${friends.size} friend(s)")
-                loadGroup()
+                toast(if (sent > 0) getString(R.string.group_invite_sent) else "No new invites sent")
             }
         }
     }

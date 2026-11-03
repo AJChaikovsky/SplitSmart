@@ -11,8 +11,13 @@ class GroupManager(
     private val userRepository: UserRepository = UserRepository.getInstance(),
     private val expenseRepository: ExpenseRepository = ExpenseRepository.getInstance(),
     private val settlementRepository: SettlementRepository = SettlementRepository.getInstance(),
-    private val accountManager: AccountManager = AccountManager.getInstance()
+    private val accountManager: AccountManager = AccountManager.getInstance(),
+    private val requestManager: RequestManager = RequestManager.getInstance()
 ) {
+    /**
+     * Creates a group with the current user as sole member, then sends invites
+     * to any selected friends (they join after accepting).
+     */
     suspend fun createGroup(
         name: String,
         description: String,
@@ -22,25 +27,36 @@ class GroupManager(
         val current = accountManager.getCurrentUser()
             ?: throw IllegalStateException("Not logged in")
 
-        val extraUsers = additionalMemberIds
+        val group = groupRepository.save(
+            Group(
+                name = name.trim(),
+                description = description.trim(),
+                ownerId = current.uid,
+                memberEmails = listOf(current.email),
+                memberIds = listOf(current.uid),
+                createdAt = System.currentTimeMillis()
+            )
+        )
+
+        additionalMemberIds
             .distinct()
             .filter { it != current.uid }
-            .mapNotNull { userRepository.getById(it) }
+            .forEach { uid ->
+                requestManager.sendGroupInvite(group.id, uid)
+            }
 
-        val memberIds = listOf(current.uid) + extraUsers.map { it.uid }
-        val memberEmails = listOf(current.email) + extraUsers.map { it.email }
-
-        val group = Group(
-            name = name.trim(),
-            description = description.trim(),
-            ownerId = current.uid,
-            memberEmails = memberEmails,
-            memberIds = memberIds,
-            createdAt = System.currentTimeMillis()
-        )
-        return groupRepository.save(group)
+        return group
     }
 
+    suspend fun inviteMemberByUid(groupId: String, memberUid: String) {
+        requestManager.sendGroupInvite(groupId, memberUid)
+    }
+
+    suspend fun inviteMemberByEmail(groupId: String, email: String) {
+        requestManager.sendGroupInviteByEmail(groupId, email)
+    }
+
+    /** @deprecated Prefer invite flows; kept for accept-side joins only via RequestManager. */
     suspend fun addMemberByUid(groupId: String, memberUid: String): Group {
         val group = groupRepository.getById(groupId)
             ?: throw IllegalArgumentException("Group not found")
@@ -61,25 +77,8 @@ class GroupManager(
     }
 
     suspend fun addMemberByEmail(groupId: String, email: String): Group {
-        val group = groupRepository.getById(groupId)
-            ?: throw IllegalArgumentException("Group not found")
-        val currentUid = accountManager.currentUid()
-            ?: throw IllegalStateException("Not logged in")
-        require(group.ownerId == currentUid) { "Only the group owner can add members" }
-
-        val normalized = email.trim().lowercase()
-        require(normalized.endsWith("@usc.edu")) { "Member email must be a @usc.edu address" }
-
-        val user = userRepository.getByEmail(normalized)
-            ?: throw IllegalArgumentException("No registered user with that USC email")
-
-        require(!group.memberIds.contains(user.uid)) { "User is already a member" }
-
-        val updated = group.copy(
-            memberEmails = group.memberEmails + user.email,
-            memberIds = group.memberIds + user.uid
-        )
-        return groupRepository.save(updated)
+        inviteMemberByEmail(groupId, email)
+        return getGroup(groupId)
     }
 
     suspend fun editGroup(groupId: String, name: String, description: String): Group {
@@ -107,9 +106,6 @@ class GroupManager(
         groupRepository.delete(groupId)
     }
 
-    /**
-     * Owner removes another member from the group. Cannot remove the owner.
-     */
     suspend fun removeMember(groupId: String, memberUid: String): Group {
         val group = groupRepository.getById(groupId)
             ?: throw IllegalArgumentException("Group not found")
@@ -127,9 +123,6 @@ class GroupManager(
         return groupRepository.save(updated)
     }
 
-    /**
-     * Non-owner leaves the group. Owners must delete the group instead.
-     */
     suspend fun leaveGroup(groupId: String) {
         val group = groupRepository.getById(groupId)
             ?: throw IllegalArgumentException("Group not found")

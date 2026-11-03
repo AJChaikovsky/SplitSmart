@@ -25,15 +25,15 @@ service cloud.firestore {
     }
 
     match /groups/{groupId} {
-      // Allow list queries with array-contains on memberIds.
       allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
       allow create: if signedIn()
         && request.resource.data.ownerId == request.auth.uid
         && request.auth.uid in request.resource.data.memberIds;
-      // Owner may edit membership/details. Non-owners may only leave (remove themselves).
       allow update: if signedIn() && (
+        // Owner edits membership / details (ownerId stays the same).
         (resource.data.ownerId == request.auth.uid
           && request.resource.data.ownerId == resource.data.ownerId)
+        // Non-owner leaves the group (removes only themselves).
         || (
           request.auth.uid != resource.data.ownerId
           && request.auth.uid in resource.data.memberIds
@@ -42,12 +42,19 @@ service cloud.firestore {
           && request.resource.data.name == resource.data.name
           && request.resource.data.description == resource.data.description
         )
+        // Self-join after accepting a group invite (adds only yourself).
+        || (
+          !(request.auth.uid in resource.data.memberIds)
+          && request.auth.uid in request.resource.data.memberIds
+          && request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1
+          && request.resource.data.ownerId == resource.data.ownerId
+          && request.resource.data.name == resource.data.name
+          && request.resource.data.description == resource.data.description
+        )
       );
       allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
     }
 
-    // Expense/settlement list queries filter by groupId in the client.
-    // Keep reads auth-gated; writes enforce membership/creator rules.
     match /expenses/{expenseId} {
       allow read: if signedIn();
       allow create: if signedIn()
@@ -74,7 +81,6 @@ service cloud.firestore {
     }
 
     match /friendships/{friendshipId} {
-      // Allow get of missing docs (resource == null) so clients can check before create.
       allow get: if signedIn() && (
         resource == null
         || request.auth.uid in resource.data.userIds
@@ -84,11 +90,38 @@ service cloud.firestore {
         && request.auth.uid in request.resource.data.userIds
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.userIds.size() == 2;
-      // Idempotent re-save of an existing friendship by either member.
       allow update: if signedIn()
         && request.auth.uid in resource.data.userIds
         && request.resource.data.userIds == resource.data.userIds;
       allow delete: if signedIn() && request.auth.uid in resource.data.userIds;
+    }
+
+    match /requests/{requestId} {
+      allow get: if signedIn() && (
+        resource == null
+        || request.auth.uid == resource.data.fromUserId
+        || request.auth.uid == resource.data.toUserId
+      );
+      allow list: if signedIn() && (
+        request.auth.uid == resource.data.fromUserId
+        || request.auth.uid == resource.data.toUserId
+      );
+      allow create: if signedIn()
+        && request.auth.uid == request.resource.data.fromUserId
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.fromUserId != request.resource.data.toUserId;
+      // Recipient may accept or deny a pending request; core fields stay fixed.
+      allow update: if signedIn()
+        && request.auth.uid == resource.data.toUserId
+        && resource.data.status == 'PENDING'
+        && request.resource.data.status in ['ACCEPTED', 'DENIED']
+        && request.resource.data.fromUserId == resource.data.fromUserId
+        && request.resource.data.toUserId == resource.data.toUserId
+        && request.resource.data.type == resource.data.type
+        && request.resource.data.groupId == resource.data.groupId
+        && request.resource.data.groupName == resource.data.groupName
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
     }
   }
 }

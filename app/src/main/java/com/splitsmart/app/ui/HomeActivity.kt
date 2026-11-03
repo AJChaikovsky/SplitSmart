@@ -12,16 +12,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import com.splitsmart.app.R
 import com.splitsmart.app.business.AccountManager
 import com.splitsmart.app.business.ActivityManager
 import com.splitsmart.app.business.FriendManager
 import com.splitsmart.app.business.GroupManager
+import com.splitsmart.app.business.RequestManager
 import com.splitsmart.app.databinding.ActivityHomeBinding
 import com.splitsmart.app.model.ActivityItem
 import com.splitsmart.app.model.ActivityKind
 import com.splitsmart.app.model.FriendBalance
 import com.splitsmart.app.model.Group
+import com.splitsmart.app.model.IncomingRequest
+import com.splitsmart.app.model.RequestType
 import com.splitsmart.app.model.TransactionType
 
 class HomeActivity : AppCompatActivity() {
@@ -29,6 +33,7 @@ class HomeActivity : AppCompatActivity() {
     private val groupManager = GroupManager.getInstance()
     private val friendManager = FriendManager.getInstance()
     private val activityManager = ActivityManager.getInstance()
+    private val requestManager = RequestManager.getInstance()
     private val accountManager = AccountManager.getInstance()
 
     private val groupsAdapter = GroupAdapter { group ->
@@ -38,6 +43,10 @@ class HomeActivity : AppCompatActivity() {
         )
     }
     private val friendsAdapter = FriendAdapter()
+    private val requestsAdapter = RequestAdapter(
+        onAccept = { acceptRequest(it) },
+        onDeny = { denyRequest(it) }
+    )
     private val activityAdapter = ActivityAdapter { item ->
         openActivityItem(item)
     }
@@ -58,6 +67,8 @@ class HomeActivity : AppCompatActivity() {
         binding.rvGroups.adapter = groupsAdapter
         binding.rvFriends.layoutManager = LinearLayoutManager(this)
         binding.rvFriends.adapter = friendsAdapter
+        binding.rvRequests.layoutManager = LinearLayoutManager(this)
+        binding.rvRequests.adapter = requestsAdapter
         binding.rvActivity.layoutManager = LinearLayoutManager(this)
         binding.rvActivity.adapter = activityAdapter
 
@@ -89,6 +100,7 @@ class HomeActivity : AppCompatActivity() {
         currentTab = tabId
         binding.panelGroups.visibility = if (tabId == R.id.nav_groups) View.VISIBLE else View.GONE
         binding.panelFriends.visibility = if (tabId == R.id.nav_friends) View.VISIBLE else View.GONE
+        binding.panelRequests.visibility = if (tabId == R.id.nav_requests) View.VISIBLE else View.GONE
         binding.panelActivity.visibility = if (tabId == R.id.nav_activity) View.VISIBLE else View.GONE
 
         when (tabId) {
@@ -104,6 +116,11 @@ class HomeActivity : AppCompatActivity() {
                 binding.fabCreate.show()
                 binding.fabCreate.contentDescription = getString(R.string.add_friend)
             }
+            R.id.nav_requests -> {
+                binding.tvHeaderTitle.setText(R.string.your_requests)
+                binding.tvHeaderSubtitle.setText(R.string.requests_subtitle)
+                binding.fabCreate.hide()
+            }
             R.id.nav_activity -> {
                 binding.tvHeaderTitle.setText(R.string.your_activity)
                 binding.tvHeaderSubtitle.setText(R.string.activity_subtitle)
@@ -117,6 +134,7 @@ class HomeActivity : AppCompatActivity() {
         when (currentTab) {
             R.id.nav_groups -> loadGroups()
             R.id.nav_friends -> loadFriends()
+            R.id.nav_requests -> loadRequests()
             R.id.nav_activity -> loadActivity()
         }
     }
@@ -169,6 +187,22 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    private fun loadRequests() {
+        binding.progress.visibility = View.VISIBLE
+        launchIo(onError = {
+            binding.progress.visibility = View.GONE
+            toast(it)
+        }) {
+            val requests = requestManager.listIncomingPending()
+            runOnUiThread {
+                binding.progress.visibility = View.GONE
+                requestsAdapter.submit(requests)
+                binding.tvEmptyRequests.visibility =
+                    if (requests.isEmpty()) View.VISIBLE else View.GONE
+            }
+        }
+    }
+
     private fun loadActivity() {
         binding.progress.visibility = View.VISIBLE
         launchIo(onError = {
@@ -204,13 +238,42 @@ class HomeActivity : AppCompatActivity() {
                     friendManager.addFriendByEmail(email)
                     runOnUiThread {
                         binding.progress.visibility = View.GONE
-                        toast("Friend added")
-                        loadFriends()
+                        toast(getString(R.string.friend_request_sent))
                     }
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun acceptRequest(item: IncomingRequest) {
+        binding.progress.visibility = View.VISIBLE
+        launchIo(onError = {
+            binding.progress.visibility = View.GONE
+            toast(it)
+        }) {
+            requestManager.accept(item.request.id)
+            runOnUiThread {
+                binding.progress.visibility = View.GONE
+                toast("Accepted")
+                loadRequests()
+            }
+        }
+    }
+
+    private fun denyRequest(item: IncomingRequest) {
+        binding.progress.visibility = View.VISIBLE
+        launchIo(onError = {
+            binding.progress.visibility = View.GONE
+            toast(it)
+        }) {
+            requestManager.deny(item.request.id)
+            runOnUiThread {
+                binding.progress.visibility = View.GONE
+                toast("Denied")
+                loadRequests()
+            }
+        }
     }
 
     private fun openActivityItem(item: ActivityItem) {
@@ -320,6 +383,48 @@ class HomeActivity : AppCompatActivity() {
             val name: TextView = view.findViewById(R.id.tvName)
             val email: TextView = view.findViewById(R.id.tvEmail)
             val balance: TextView = view.findViewById(R.id.tvBalance)
+        }
+    }
+
+    private class RequestAdapter(
+        private val onAccept: (IncomingRequest) -> Unit,
+        private val onDeny: (IncomingRequest) -> Unit
+    ) : RecyclerView.Adapter<RequestAdapter.VH>() {
+        private val items = mutableListOf<IncomingRequest>()
+
+        fun submit(list: List<IncomingRequest>) {
+            items.clear()
+            items.addAll(list)
+            notifyDataSetChanged()
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+            val view =
+                LayoutInflater.from(parent.context).inflate(R.layout.item_request, parent, false)
+            return VH(view)
+        }
+
+        override fun getItemCount(): Int = items.size
+
+        override fun onBindViewHolder(holder: VH, position: Int) {
+            val item = items[position]
+            val ctx = holder.itemView.context
+            holder.kind.text = when (item.request.typeEnum()) {
+                RequestType.FRIEND -> ctx.getString(R.string.request_friend)
+                RequestType.GROUP_INVITE -> ctx.getString(R.string.request_group)
+            }
+            holder.headline.text = item.headline()
+            holder.email.text = item.fromEmail
+            holder.btnAccept.setOnClickListener { onAccept(item) }
+            holder.btnDeny.setOnClickListener { onDeny(item) }
+        }
+
+        class VH(view: View) : RecyclerView.ViewHolder(view) {
+            val kind: TextView = view.findViewById(R.id.tvKind)
+            val headline: TextView = view.findViewById(R.id.tvHeadline)
+            val email: TextView = view.findViewById(R.id.tvEmail)
+            val btnAccept: MaterialButton = view.findViewById(R.id.btnAccept)
+            val btnDeny: MaterialButton = view.findViewById(R.id.btnDeny)
         }
     }
 
