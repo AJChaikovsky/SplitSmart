@@ -27,7 +27,7 @@
             android:exported="false"
             android:theme="@style/Theme.SplitSmart.NoActionBar" />
         <activity android:name=".ui.CreateGroupActivity" android:exported="false" />
-        <activity android:name=".ui.GroupDetailActivity" android:exported="false" />
+        <activity android:name=".ui.GroupDetailActivity" android:exported="false" android:theme="@style/Theme.SplitSmart.Group" />
         <activity android:name=".ui.EditGroupActivity" android:exported="false" />
         <activity android:name=".ui.CreateExpenseActivity" android:exported="false" />
         <activity android:name=".ui.ExpenseDetailActivity" android:exported="false" />

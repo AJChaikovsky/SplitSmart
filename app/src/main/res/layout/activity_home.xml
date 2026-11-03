@@ -1,87 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/background">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="20dp">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="4dp"
-            android:gravity="center_vertical">
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_weight="1">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.SplitSmart.Title"
-                    android:textSize="20sp"
-                    android:text="@string/your_groups" />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
-                    android:layout_marginTop="5dp"
-                    android:text="@string/groups_subtitle" />
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="20dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="4dp" android:gravity="center_vertical">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="vertical" android:layout_weight="1">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="@style/TextAppearance.SplitSmart.Title" android:textSize="20sp" android:text="@string/your_groups" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="@style/TextAppearance.SplitSmart.Caption" android:layout_marginTop="5dp" android:text="@string/groups_subtitle" />
             </LinearLayout>
-            <androidx.appcompat.widget.AppCompatImageButton
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:padding="12dp"
-                android:background="@drawable/background_avatar"
-                android:src="@drawable/ic_person"
-                app:tint="@color/primary"
-                android:contentDescription="@string/profile"
-                android:id="@+id/btnProfile" />
+            <com.splitsmart.app.ui.ThemeToggleSwitch android:layout_width="wrap_content" android:layout_height="48dp" android:layout_marginEnd="4dp" />
+            <androidx.appcompat.widget.AppCompatImageButton android:layout_width="48dp" android:layout_height="48dp" android:padding="12dp" android:background="@drawable/background_avatar" android:src="@drawable/ic_person" app:tint="@color/text_secondary" android:contentDescription="@string/profile" android:id="@+id/btnProfile" />
         </LinearLayout>
-        <com.google.android.material.progressindicator.CircularProgressIndicator
-            android:id="@+id/progress"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="20dp"
-            android:indeterminate="true"
-            android:visibility="gone"
-            app:indicatorSize="28dp"
-            app:trackThickness="3dp"
-            app:indicatorInset="2dp" />
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.SplitSmart.Body"
-            android:gravity="center"
-            android:padding="24dp"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/background_card"
-            android:textColor="@color/text_secondary"
-            android:visibility="gone"
-            android:text="@string/no_groups"
-            android:id="@+id/tvEmpty" />
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:layout_marginTop="16dp"
-            android:paddingBottom="88dp"
-            android:clipToPadding="false"
-            android:id="@+id/rvGroups" />
+        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progress" android:layout_width="32dp" android:layout_height="32dp" android:layout_gravity="center_horizontal" android:layout_marginTop="20dp" android:indeterminate="true" android:visibility="gone" app:indicatorSize="28dp" app:trackThickness="3dp" app:indicatorInset="2dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="@style/TextAppearance.SplitSmart.Body" android:gravity="center" android:padding="24dp" android:layout_marginTop="12dp" android:background="@drawable/background_card" android:textColor="@color/text_secondary" android:visibility="gone" android:text="@string/no_groups" android:id="@+id/tvEmpty" />
+        <androidx.recyclerview.widget.RecyclerView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="16dp" android:paddingBottom="88dp" android:clipToPadding="false" android:id="@+id/rvGroups" />
     </LinearLayout>
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="24dp"
-        android:contentDescription="@string/create_group"
-        app:srcCompat="@drawable/ic_plus"
-        android:id="@+id/fabCreate" />
+    <com.google.android.material.floatingactionbutton.FloatingActionButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="bottom|end" android:layout_margin="24dp" android:contentDescription="@string/create_group" app:srcCompat="@drawable/ic_plus" android:id="@+id/fabCreate" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

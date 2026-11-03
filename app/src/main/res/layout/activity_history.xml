@@ -7,111 +7,150 @@
     android:orientation="vertical"
     android:padding="20dp"
     android:background="@color/background">
-    <com.google.android.material.textfield.TextInputLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/search_transactions"
-        app:startIconDrawable="@drawable/ic_search">
-        <com.google.android.material.textfield.TextInputEditText
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/search_transactions"
+            app:startIconDrawable="@drawable/ic_search"
+            android:layout_weight="1">
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:id="@+id/etSearch" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.button.MaterialButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnToggleFilters"
+            android:text="@string/filter"
+            style="@style/Widget.SplitSmart.Button.TextButton"
+            android:minHeight="48dp"
+            android:layout_marginStart="4dp"
+            app:icon="@drawable/ic_filter"
+            app:iconSize="16dp"
+            app:iconGravity="textStart" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/layoutFilters"
+        android:orientation="vertical"
+        android:visibility="gone">
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:imeOptions="actionSearch"
-            android:inputType="text"
-            android:id="@+id/etSearch" />
-    </com.google.android.material.textfield.TextInputLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="16dp"
-        android:gravity="center_vertical">
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_weight="1"
-            android:layout_marginStart="0dp">
-            <TextView
-                android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical">
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
-                android:layout_marginBottom="6dp"
-                android:text="@string/type" />
-            <Spinner
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                style="@style/Widget.SplitSmart.Spinner"
-                android:id="@+id/spType" />
+                android:orientation="vertical"
+                android:layout_weight="1"
+                android:layout_marginStart="0dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
+                    android:layout_marginBottom="6dp"
+                    android:text="@string/type" />
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    style="@style/Widget.SplitSmart.Spinner"
+                    android:id="@+id/spType" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
+                    android:layout_marginBottom="6dp"
+                    android:text="@string/category" />
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    style="@style/Widget.SplitSmart.Spinner"
+                    android:id="@+id/spCategory" />
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_weight="1"
-            android:layout_marginStart="10dp">
-            <TextView
-                android:layout_width="match_parent"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical">
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
-                android:layout_marginBottom="6dp"
-                android:text="@string/category" />
-            <Spinner
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                style="@style/Widget.SplitSmart.Spinner"
-                android:id="@+id/spCategory" />
+                android:orientation="vertical"
+                android:layout_weight="1"
+                android:layout_marginStart="0dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
+                    android:layout_marginBottom="6dp"
+                    android:text="@string/sort" />
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    style="@style/Widget.SplitSmart.Spinner"
+                    android:id="@+id/spSort" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
+                    android:layout_marginBottom="6dp"
+                    android:text="@string/member_filter" />
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    style="@style/Widget.SplitSmart.Spinner"
+                    android:id="@+id/spMember" />
+            </LinearLayout>
         </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/apply_filters"
+            android:layout_marginTop="12dp"
+            style="@style/Widget.SplitSmart.Button.TextButton"
+            android:id="@+id/btnApply"
+            android:minHeight="48dp"
+            android:layout_gravity="end"
+            android:minWidth="48dp" />
     </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="12dp"
-        android:gravity="center_vertical">
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_weight="1"
-            android:layout_marginStart="0dp">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
-                android:layout_marginBottom="6dp"
-                android:text="@string/sort" />
-            <Spinner
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                style="@style/Widget.SplitSmart.Spinner"
-                android:id="@+id/spSort" />
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_weight="1"
-            android:layout_marginStart="10dp">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
-                android:layout_marginBottom="6dp"
-                android:text="@string/member_filter" />
-            <Spinner
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                style="@style/Widget.SplitSmart.Spinner"
-                android:id="@+id/spMember" />
-        </LinearLayout>
-    </LinearLayout>
-    <com.google.android.material.button.MaterialButton
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/apply_filters"
-        android:layout_marginTop="12dp"
-        style="@style/Widget.SplitSmart.Button.OutlinedButton"
-        android:id="@+id/btnApply" />
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:id="@+id/progress"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        android:indeterminate="true"
+        app:indicatorSize="28dp"
+        app:trackThickness="3dp"
+        app:indicatorInset="2dp" />
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -136,6 +175,6 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:paddingBottom="16dp"
+        android:paddingBottom="112dp"
         android:id="@+id/rvHistory" />
 </LinearLayout>

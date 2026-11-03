@@ -50,10 +50,13 @@
         </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="@string/create_group" />
+            android:text="@string/create_group"
+            android:minHeight="48dp"
+            android:layout_gravity="end"
+            android:minWidth="120dp" />
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/progress"
             android:layout_width="32dp"

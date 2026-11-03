@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.SplitSmart.Title"
+            android:layout_weight="1"
+            android:textSize="18sp"
+            android:text="@string/group_options" />
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:id="@+id/btnClose"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_close"
+            android:contentDescription="@string/close"
+            app:tint="@color/text_secondary" />
+    </LinearLayout>
+    <com.splitsmart.app.ui.ThemeToggleSwitch
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:id="@+id/themeToggle"
+        android:layout_marginTop="8dp" />
+    <com.google.android.material.button.MaterialButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnManageMembers"
+        android:text="@string/manage_members"
+        style="@style/Widget.SplitSmart.Button.TextButton"
+        android:minHeight="48dp"
+        android:gravity="start|center_vertical"
+        app:icon="@drawable/ic_group"
+        app:iconGravity="textStart" />
+    <com.google.android.material.button.MaterialButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnGroupSettings"
+        android:text="@string/edit_group"
+        style="@style/Widget.SplitSmart.Button.TextButton"
+        android:minHeight="48dp"
+        android:gravity="start|center_vertical"
+        android:visibility="gone" />
+</LinearLayout>

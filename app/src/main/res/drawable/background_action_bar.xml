@@ -1,4 +1,4 @@
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/usc_cardinal" />
-    <item android:height="1dp" android:gravity="bottom" android:drawable="@color/usc_gold" />
-</layer-list>
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/background" />
+</shape>

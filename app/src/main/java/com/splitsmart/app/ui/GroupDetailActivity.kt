@@ -2,182 +2,153 @@ package com.splitsmart.app.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
+import android.view.Menu
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import com.splitsmart.app.business.AccountManager
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.tabs.TabLayout
+import com.splitsmart.app.R
 import com.splitsmart.app.business.GroupManager
-import com.splitsmart.app.data.UserRepository
 import com.splitsmart.app.databinding.ActivityGroupDetailBinding
-import com.splitsmart.app.databinding.ItemGroupMemberBinding
-import com.splitsmart.app.model.Group
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
+/** One group workspace: persistent navigation with balances as the default destination. */
 class GroupDetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGroupDetailBinding
-    private val groupManager = GroupManager.getInstance()
-    private val userRepository = UserRepository.getInstance()
-    private val accountManager = AccountManager.getInstance()
     private lateinit var groupId: String
-    private var group: Group? = null
+    private var selectedTab = 0
+    private var loading: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityGroupDetailBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
         groupId = intent.getStringExtra(HomeActivity.EXTRA_GROUP_ID).orEmpty()
         if (groupId.isBlank()) {
-            toast("Missing group")
+            toast(getString(R.string.missing_group))
             finish()
             return
         }
-
-        binding.btnAddMember.setOnClickListener { addMember() }
-        binding.btnLeaveGroup.setOnClickListener { leaveGroup() }
+        binding = ActivityGroupDetailBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = getString(R.string.group_title)
+        binding.btnMembers.setOnClickListener { showMembers() }
         binding.btnAddExpense.setOnClickListener {
-            startActivity(
-                Intent(this, CreateExpenseActivity::class.java)
-                    .putExtra(HomeActivity.EXTRA_GROUP_ID, groupId)
-            )
+            startActivity(Intent(this, CreateExpenseActivity::class.java)
+                .putExtra(HomeActivity.EXTRA_GROUP_ID, groupId))
         }
-        binding.btnBalances.setOnClickListener {
-            startActivity(
-                Intent(this, BalanceActivity::class.java)
-                    .putExtra(HomeActivity.EXTRA_GROUP_ID, groupId)
-            )
+        listOf(R.string.balances, R.string.history, R.string.overview).forEach {
+            binding.groupTabs.addTab(binding.groupTabs.newTab().setText(it), false)
         }
-        binding.btnHistory.setOnClickListener {
-            startActivity(
-                Intent(this, HistoryActivity::class.java)
-                    .putExtra(HomeActivity.EXTRA_GROUP_ID, groupId)
-            )
+        binding.groupTabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) { showTab(tab.position) }
+            override fun onTabUnselected(tab: TabLayout.Tab) = Unit
+            override fun onTabReselected(tab: TabLayout.Tab) = Unit
+        })
+        selectedTab = (savedInstanceState?.getInt(EXTRA_TAB)
+            ?: intent.getIntExtra(EXTRA_TAB, 0)).coerceIn(0, 2)
+        binding.groupTabs.getTabAt(selectedTab)?.select()
+        supportFragmentManager.setFragmentResultListener(MEMBERS_CHANGED, this) { _, _ ->
+            refreshGroup()
+            (supportFragmentManager.primaryNavigationFragment as? GroupTabFragment)?.refresh()
         }
-        binding.btnSummary.setOnClickListener {
-            startActivity(
-                Intent(this, MonthlySummaryActivity::class.java)
-                    .putExtra(HomeActivity.EXTRA_GROUP_ID, groupId)
-            )
+    }
+
+    private fun showTab(index: Int) {
+        if (supportFragmentManager.isStateSaved) return
+        selectedTab = index
+        val transaction = supportFragmentManager.beginTransaction().setReorderingAllowed(true)
+        for (position in 0..2) {
+            supportFragmentManager.findFragmentByTag("group_tab_$position")?.let { fragment ->
+                if (position != index) {
+                    transaction.hide(fragment).setMaxLifecycle(fragment, Lifecycle.State.STARTED)
+                }
+            }
         }
-        binding.btnEditGroup.setOnClickListener {
-            startActivity(
-                Intent(this, EditGroupActivity::class.java)
-                    .putExtra(HomeActivity.EXTRA_GROUP_ID, groupId)
-            )
+        val tag = "group_tab_$index"
+        val fragment = supportFragmentManager.findFragmentByTag(tag) ?: when (index) {
+            1 -> GroupHistoryFragment()
+            2 -> GroupSummaryFragment()
+            else -> GroupBalanceFragment()
+        }.apply {
+            arguments = Bundle().apply { putString(HomeActivity.EXTRA_GROUP_ID, groupId) }
         }
+        if (fragment.isAdded) transaction.show(fragment)
+        else transaction.add(R.id.groupContent, fragment, tag)
+        transaction.setMaxLifecycle(fragment, Lifecycle.State.RESUMED)
+            .setPrimaryNavigationFragment(fragment).commitNow()
     }
 
     override fun onResume() {
         super.onResume()
-        loadGroup()
+        if (::binding.isInitialized) refreshGroup()
     }
 
-    private fun loadGroup() {
-        binding.progress.visibility = View.VISIBLE
-        launchIo(onError = {
-            binding.progress.visibility = View.GONE
-            toast(it)
-        }) {
-            val g = groupManager.getGroup(groupId)
-            group = g
-            val members = g.memberIds.map { uid ->
-                val user = userRepository.getById(uid)
-                Triple(uid, user?.name ?: uid, user?.email.orEmpty())
-            }
-            val currentUid = accountManager.currentUid()
-            val isOwner = g.ownerId == currentUid
-            val isMember = currentUid != null && currentUid in g.memberIds
-            runOnUiThread {
-                binding.progress.visibility = View.GONE
-                supportActionBar?.title = g.name
-                binding.tvName.text = g.name
-                binding.tvDescription.text = g.description.ifBlank { "No description" }
-                binding.tvGroupAvatar.text = initials(g.name)
-                binding.btnEditGroup.visibility = if (isOwner) View.VISIBLE else View.GONE
-                binding.layoutAddMember.visibility = if (isOwner) View.VISIBLE else View.GONE
-                binding.btnLeaveGroup.visibility =
-                    if (isMember && !isOwner) View.VISIBLE else View.GONE
-                renderMembers(members, isOwner, g.ownerId)
+    private fun refreshGroup() {
+        loading?.cancel()
+        loading = lifecycleScope.launch {
+            try {
+                val group = withContext(Dispatchers.IO) { GroupManager.getInstance().getGroup(groupId) }
+                supportActionBar?.title = group.name
+                binding.btnMembers.text = resources.getQuantityString(
+                    R.plurals.group_members, group.memberIds.size, group.memberIds.size)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                toast(error.message ?: getString(R.string.group_load_error))
             }
         }
     }
 
-    private fun renderMembers(
-        members: List<Triple<String, String, String>>,
-        isOwner: Boolean,
-        ownerId: String
-    ) {
-        binding.llMemberList.removeAllViews()
-        val inflater = LayoutInflater.from(this)
-        members.forEach { (uid, name, email) ->
-            val row = ItemGroupMemberBinding.inflate(inflater, binding.llMemberList, false)
-            row.tvAvatar.text = initials(name)
-            row.tvMemberName.text = if (uid == ownerId) "$name · owner" else name
-            row.tvMemberEmail.text = email
-            val canRemove = isOwner && uid != ownerId
-            row.btnRemoveMember.visibility = if (canRemove) View.VISIBLE else View.GONE
-            if (canRemove) {
-                row.btnRemoveMember.setOnClickListener {
-                    confirm("Remove member", "Remove $name from this group?") {
-                        removeMember(uid)
-                    }
-                }
-            }
-            binding.llMemberList.addView(row.root)
-        }
+    fun showMembers() {
+        if (supportFragmentManager.isStateSaved || supportFragmentManager.findFragmentByTag("members") != null) return
+        GroupMembersSheet().apply {
+            arguments = Bundle().apply { putString(HomeActivity.EXTRA_GROUP_ID, groupId) }
+        }.show(supportFragmentManager, "members")
     }
 
-    private fun addMember() {
-        val email = binding.etMemberEmail.text?.toString().orEmpty()
-        binding.progress.visibility = View.VISIBLE
-        launchIo(onError = {
-            binding.progress.visibility = View.GONE
-            toast(it)
-        }) {
-            groupManager.addMemberByEmail(groupId, email)
-            runOnUiThread {
-                binding.progress.visibility = View.GONE
-                binding.etMemberEmail.setText("")
-                toast("Member added")
-                loadGroup()
-            }
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menu.add(Menu.NONE, R.id.action_group_options, Menu.NONE, R.string.group_options).apply {
+            setIcon(R.drawable.ic_more)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         }
-    }
-
-    private fun removeMember(memberUid: String) {
-        binding.progress.visibility = View.VISIBLE
-        launchIo(onError = {
-            binding.progress.visibility = View.GONE
-            toast(it)
-        }) {
-            groupManager.removeMember(groupId, memberUid)
-            runOnUiThread {
-                binding.progress.visibility = View.GONE
-                toast("Member removed")
-                loadGroup()
-            }
-        }
-    }
-
-    private fun leaveGroup() {
-        confirm("Leave group", "Leave this group? You will lose access until invited again.") {
-            binding.progress.visibility = View.VISIBLE
-            launchIo(onError = {
-                binding.progress.visibility = View.GONE
-                toast(it)
-            }) {
-                groupManager.leaveGroup(groupId)
-                runOnUiThread {
-                    binding.progress.visibility = View.GONE
-                    toast("Left group")
-                    finish()
-                }
-            }
-        }
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
         return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId != R.id.action_group_options) return super.onOptionsItemSelected(item)
+        if (!supportFragmentManager.isStateSaved && supportFragmentManager.findFragmentByTag("group_options") == null) {
+            GroupOptionsSheet().apply {
+                arguments = Bundle().apply { putString(HomeActivity.EXTRA_GROUP_ID, groupId) }
+            }.show(supportFragmentManager, "group_options")
+        }
+        return true
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt(EXTRA_TAB, selectedTab)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getStringExtra(HomeActivity.EXTRA_GROUP_ID) != groupId) {
+            finish()
+            startActivity(Intent(this, GroupDetailActivity::class.java).putExtras(intent))
+        } else {
+            setIntent(intent)
+            binding.groupTabs.getTabAt(intent.getIntExtra(EXTRA_TAB, 0).coerceIn(0, 2))?.select()
+        }
+    }
+
+    override fun onSupportNavigateUp(): Boolean { finish(); return true }
+
+    companion object {
+        const val EXTRA_TAB = "groupTab"
+        const val MEMBERS_CHANGED = "groupMembersChanged"
     }
 }

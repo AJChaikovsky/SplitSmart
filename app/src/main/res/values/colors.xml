@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Official USC digital brand colors. -->
     <color name="usc_cardinal">#990000</color>
     <color name="usc_gold">#FFCC00</color>
-    <color name="primary">@color/usc_cardinal</color>
-    <color name="primary_dark">#730000</color>
-    <color name="primary_light">#FFF5D6</color>
-    <color name="accent">@color/usc_gold</color>
-    <color name="background">#F7F7F4</color>
+    <color name="primary">#B52F3B</color>
+    <color name="primary_dark">#8D2430</color>
+    <color name="primary_light">#F0F0ED</color>
+    <color name="accent">#EBC15B</color>
+    <color name="background">#F6F6F4</color>
     <color name="surface">#FFFFFF</color>
-    <color name="surface_muted">#F0F0EB</color>
-    <color name="text_primary">#20221F</color>
-    <color name="text_secondary">#62665F</color>
-    <color name="divider">#E0E2DA</color>
+    <color name="surface_muted">#EFEFEC</color>
+    <color name="text_primary">#27292D</color>
+    <color name="text_secondary">#64676E</color>
+    <color name="divider">#DDDFE1</color>
     <color name="error">#B3261E</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="ic_launcher_background">@color/usc_cardinal</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="on_error">#FFFFFF</color>
+    <color name="on_accent">#302718</color>
+    <color name="primary_container">#B52F3B</color>
+    <color name="legacy_navigation_bar">#27292D</color>
 </resources>

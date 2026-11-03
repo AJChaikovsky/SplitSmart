@@ -65,7 +65,7 @@ class CategoryChartView @JvmOverloads constructor(
 
     private val palette = intArrayOf(
         ContextCompat.getColor(context, R.color.primary),
-        ContextCompat.getColor(context, R.color.accent),
+        ContextCompat.getColor(context, R.color.text_secondary),
         0xFF2A9D8F.toInt(),
         0xFFE76F51.toInt(),
         0xFF264653.toInt(),

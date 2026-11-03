@@ -57,18 +57,24 @@
             android:lineSpacingExtra="5dp" />
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnEdit"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Edit" />
+            android:text="Edit"
+            style="@style/Widget.SplitSmart.Button.TextButton"
+            android:minHeight="48dp"
+            android:layout_gravity="end"
+            android:minWidth="48dp" />
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDelete"
             style="@style/Widget.SplitSmart.Button.OutlinedButton"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/delete"
             android:textColor="@color/error"
-            app:strokeColor="@color/error" />
+            android:minHeight="48dp"
+            android:layout_gravity="end"
+            android:minWidth="48dp" />
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/progress"
             android:layout_width="32dp"

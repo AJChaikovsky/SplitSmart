@@ -29,7 +29,7 @@
                     android:src="@drawable/ic_split"
                     android:importantForAccessibility="no"
                     android:layout_gravity="center"
-                    app:tint="@color/usc_gold" />
+                    app:tint="@color/white" />
             </FrameLayout>
             <LinearLayout
                 android:layout_width="0dp"
@@ -67,11 +67,11 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
+            app:cardCornerRadius="12dp"
             app:cardElevation="0dp"
             app:cardBackgroundColor="@color/surface"
             app:strokeColor="@color/divider"
-            app:strokeWidth="1dp">
+            app:strokeWidth="0dp">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -100,20 +100,26 @@
                         android:id="@+id/etPassword" />
                 </com.google.android.material.textfield.TextInputLayout>
                 <com.google.android.material.button.MaterialButton
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/login"
                     android:layout_marginTop="20dp"
                     app:icon="@drawable/ic_arrow"
                     app:iconGravity="textEnd"
-                    android:id="@+id/btnLogin" />
+                    android:id="@+id/btnLogin"
+                    android:minHeight="48dp"
+                    android:layout_gravity="end"
+                    android:minWidth="120dp" />
                 <com.google.android.material.button.MaterialButton
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/create_account"
                     android:layout_marginTop="4dp"
                     style="@style/Widget.SplitSmart.Button.TextButton"
-                    android:id="@+id/btnGoRegister" />
+                    android:id="@+id/btnGoRegister"
+                    android:minHeight="48dp"
+                    android:layout_gravity="end"
+                    android:minWidth="48dp" />
                 <com.google.android.material.progressindicator.CircularProgressIndicator
                     android:layout_width="32dp"
                     android:layout_height="32dp"
