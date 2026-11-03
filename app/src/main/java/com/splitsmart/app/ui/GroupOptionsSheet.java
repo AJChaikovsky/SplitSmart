@@ -10,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
-import com.splitsmart.app.R;
 import com.splitsmart.app.business.AccountManager;
 import com.splitsmart.app.business.GroupManager;
 import com.splitsmart.app.databinding.SheetGroupOptionsBinding;
@@ -30,7 +29,6 @@ public class GroupOptionsSheet extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         String extra = requireArguments().getString(HomeActivity.EXTRA_GROUP_ID);
         String groupId = extra == null ? "" : extra;
-        binding.themeToggle.setText(getString(R.string.dark_mode));
         binding.btnClose.setOnClickListener(v -> dismiss());
         binding.btnManageMembers.setOnClickListener(v -> {
             ((GroupDetailActivity) requireActivity()).showMembers();

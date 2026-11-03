@@ -79,8 +79,8 @@ Try another search or filter.</string>
     <string name="spending_by_category">Spending by category</string>
     <string name="spending_by_payer">Paid by member</string>
     <string name="payer_insights">Spending differences</string>
-    <string name="dark_mode">Dark mode</string>
-    <string name="dark_mode_short">Dark</string>
+    <string name="dark_mode_action">Switch to dark mode</string>
+    <string name="light_mode_action">Switch to light mode</string>
     <string name="appearance">Appearance</string>
     <string name="group_title">Group</string>
     <string name="group_options">Group options</string>

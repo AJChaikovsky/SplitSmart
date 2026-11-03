@@ -28,10 +28,15 @@
             android:contentDescription="@string/close"
             app:tint="@color/text_secondary" />
     </LinearLayout>
-    <com.splitsmart.app.ui.ThemeToggleSwitch
+    <com.splitsmart.app.ui.ThemeToggleButton
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="wrap_content"
         android:id="@+id/themeToggle"
+        android:text="@string/dark_mode_action"
+        style="@style/Widget.SplitSmart.Button.TextButton"
+        android:minHeight="48dp"
+        android:gravity="start|center_vertical"
+        app:iconGravity="textStart"
         android:layout_marginTop="8dp" />
     <com.google.android.material.button.MaterialButton
         android:layout_width="match_parent"
