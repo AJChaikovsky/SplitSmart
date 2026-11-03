@@ -92,6 +92,7 @@ class GroupDetailActivity : AppCompatActivity() {
                 supportActionBar?.title = g.name
                 binding.tvName.text = g.name
                 binding.tvDescription.text = g.description.ifBlank { "No description" }
+                binding.tvGroupAvatar.text = initials(g.name)
                 binding.btnEditGroup.visibility = if (isOwner) View.VISIBLE else View.GONE
                 binding.layoutAddMember.visibility = if (isOwner) View.VISIBLE else View.GONE
                 binding.btnLeaveGroup.visibility =
@@ -110,12 +111,9 @@ class GroupDetailActivity : AppCompatActivity() {
         val inflater = LayoutInflater.from(this)
         members.forEach { (uid, name, email) ->
             val row = ItemGroupMemberBinding.inflate(inflater, binding.llMemberList, false)
-            val label = buildString {
-                append(name)
-                if (email.isNotBlank()) append(" ($email)")
-                if (uid == ownerId) append(" · owner")
-            }
-            row.tvMemberName.text = label
+            row.tvAvatar.text = initials(name)
+            row.tvMemberName.text = if (uid == ownerId) "$name · owner" else name
+            row.tvMemberEmail.text = email
             val canRemove = isOwner && uid != ownerId
             row.btnRemoveMember.visibility = if (canRemove) View.VISIBLE else View.GONE
             if (canRemove) {

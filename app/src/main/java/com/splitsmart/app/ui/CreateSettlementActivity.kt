@@ -4,7 +4,6 @@ import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import com.splitsmart.app.R
 import com.splitsmart.app.business.AccountManager
@@ -88,11 +87,7 @@ class CreateSettlementActivity : AppCompatActivity() {
                     finish()
                     return@runOnUiThread
                 }
-                binding.spPayTo.adapter = ArrayAdapter(
-                    this@CreateSettlementActivity,
-                    android.R.layout.simple_spinner_dropdown_item,
-                    labels
-                )
+                binding.spPayTo.adapter = this@CreateSettlementActivity.choiceAdapter(labels)
                 binding.spPayTo.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                     override fun onItemSelected(
                         parent: AdapterView<*>?,

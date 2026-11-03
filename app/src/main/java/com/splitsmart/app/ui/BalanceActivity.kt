@@ -43,7 +43,8 @@ class BalanceActivity : AppCompatActivity() {
             val b = items[position]
             val from = nameCache[b.fromUserId] ?: b.fromUserId
             val to = nameCache[b.toUserId] ?: b.toUserId
-            holder.text.text = "$from owes $to ${formatMoney(b.amount)}"
+            holder.text.text = "$from owes $to\n${formatMoney(b.amount)}"
+            holder.avatar.text = initials(from)
         }
     }
 
@@ -84,9 +85,9 @@ class BalanceActivity : AppCompatActivity() {
             }
             val summary = balanceManager.summarizeForUser(uid, balances)
             runOnUiThread {
-                binding.tvToPay.text = "${getString(R.string.total_to_pay)}: ${formatMoney(summary.totalToPay)}"
+                binding.tvToPay.text = formatMoney(summary.totalToPay)
                 binding.tvToReceive.text =
-                    "${getString(R.string.total_to_receive)}: ${formatMoney(summary.totalToReceive)}"
+                    formatMoney(summary.totalToReceive)
                 adapter.submit(balances)
                 binding.tvEmpty.visibility = if (balances.isEmpty()) View.VISIBLE else View.GONE
             }
@@ -99,6 +100,7 @@ class BalanceActivity : AppCompatActivity() {
     }
 
     private class VH(view: View) : RecyclerView.ViewHolder(view) {
+        val avatar: TextView = view.findViewById(R.id.tvAvatar)
         val text: TextView = view.findViewById(R.id.tvBalance)
     }
 }
