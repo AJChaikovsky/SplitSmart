@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
@@ -11,8 +12,7 @@ import com.splitsmart.app.R
 import kotlin.math.min
 
 /**
- * Lightweight category chart: pie on the left, horizontal bars on the right.
- * No third-party chart dependency — keeps the APK small for the course project.
+ * Monthly summary graphics: donut chart + legend + vertical bars.
  */
 class CategoryChartView @JvmOverloads constructor(
     context: Context,
@@ -23,20 +23,44 @@ class CategoryChartView @JvmOverloads constructor(
     data class Slice(val label: String, val value: Double)
 
     private var slices: List<Slice> = emptyList()
+    private var centerLabel: String = ""
 
-    private val piePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val density = resources.displayMetrics.density
+
+    private val donutPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val barPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = ContextCompat.getColor(context, R.color.text_primary)
-        textSize = 28f
+    private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        color = ContextCompat.getColor(context, R.color.divider)
     }
-    private val secondaryTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.text_primary)
+        textSize = 15f * density
+        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+    }
+    private val centerValuePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.primary)
+        textSize = 16f * density
+        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        textAlign = Paint.Align.CENTER
+    }
+    private val centerCaptionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = ContextCompat.getColor(context, R.color.text_secondary)
-        textSize = 24f
+        textSize = 11f * density
+        textAlign = Paint.Align.CENTER
+    }
+    private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.text_primary)
+        textSize = 12f * density
+    }
+    private val metaPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.text_secondary)
+        textSize = 11f * density
     }
     private val emptyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = ContextCompat.getColor(context, R.color.divider)
-        style = Paint.Style.FILL
+        color = ContextCompat.getColor(context, R.color.text_secondary)
+        textSize = 14f * density
+        textAlign = Paint.Align.CENTER
     }
 
     private val palette = intArrayOf(
@@ -50,82 +74,117 @@ class CategoryChartView @JvmOverloads constructor(
         0xFF8D99AE.toInt()
     )
 
-    private val pieRect = RectF()
-    private val density = resources.displayMetrics.density
+    private val donutRect = RectF()
 
-    fun setData(categoryTotals: Map<String, Double>) {
+    fun setData(categoryTotals: Map<String, Double>, totalLabel: String = "") {
         slices = categoryTotals.entries
             .filter { it.value > 0 }
             .sortedByDescending { it.value }
             .map { Slice(it.key, it.value) }
+        centerLabel = totalLabel.ifBlank {
+            formatMoney(slices.sumOf { it.value })
+        }
+        requestLayout()
         invalidate()
     }
 
     fun clear() {
         slices = emptyList()
+        centerLabel = ""
+        requestLayout()
         invalidate()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
-        val desired = (220 * density).toInt()
-        val height = resolveSize(desired, heightMeasureSpec)
-        setMeasuredDimension(width, height)
+        val donutBlock = (210 * density).toInt()
+        val legendRows = slices.size.coerceAtLeast(1)
+        val legendBlock = (28 * density * legendRows + 28 * density).toInt()
+        val barBlock = (28 * density * legendRows + 40 * density).toInt()
+        val desired = donutBlock + legendBlock + barBlock
+        setMeasuredDimension(width, desired)
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (slices.isEmpty()) {
-            val cx = width / 2f
-            val cy = height / 2f
-            canvas.drawText("No spending this month", cx - 120f, cy, secondaryTextPaint)
+            canvas.drawText("No spending this month", width / 2f, height / 2f, emptyPaint)
             return
         }
 
         val total = slices.sumOf { it.value }.coerceAtLeast(1e-9)
         val padding = 12f * density
-        val pieSize = min(height - 2 * padding, width * 0.42f)
-        pieRect.set(padding, (height - pieSize) / 2f, padding + pieSize, (height + pieSize) / 2f)
+        drawDonut(canvas, total, padding)
+        val legendTop = donutRect.bottom + 20f * density
+        val legendBottom = drawLegend(canvas, total, legendTop, padding)
+        drawBars(canvas, legendBottom + 16f * density, padding)
+    }
 
-        var startAngle = -90f
+    private fun drawDonut(canvas: Canvas, total: Double, padding: Float) {
+        val size = min(width - 2 * padding, 180f * density)
+        val left = (width - size) / 2f
+        donutRect.set(left, padding, left + size, padding + size)
+
+        val stroke = 28f * density
+        donutPaint.strokeWidth = stroke
+        donutPaint.strokeCap = Paint.Cap.BUTT
+
+        var start = -90f
         slices.forEachIndexed { index, slice ->
-            val sweep = (slice.value / total * 360.0).toFloat()
-            piePaint.color = palette[index % palette.size]
-            canvas.drawArc(pieRect, startAngle, sweep, true, piePaint)
-            startAngle += sweep
+            val sweep = (slice.value / total * 360.0).toFloat().coerceAtLeast(1.5f)
+            donutPaint.color = palette[index % palette.size]
+            // Slight gap between slices for readability
+            val gap = if (slices.size > 1) 2f else 0f
+            canvas.drawArc(donutRect, start + gap / 2f, sweep - gap, false, donutPaint)
+            start += sweep
         }
 
-        val barLeft = pieRect.right + 16f * density
-        val barRight = width - padding
-        val barAreaHeight = height - 2 * padding
-        val rowHeight = barAreaHeight / slices.size.coerceAtLeast(1)
+        val cx = donutRect.centerX()
+        val cy = donutRect.centerY()
+        canvas.drawText(centerLabel, cx, cy - 4f * density, centerValuePaint)
+        canvas.drawText("total", cx, cy + 14f * density, centerCaptionPaint)
+    }
+
+    private fun drawLegend(canvas: Canvas, total: Double, top: Float, padding: Float): Float {
+        canvas.drawText("Breakdown", padding, top, titlePaint)
+        var y = top + 22f * density
+        val swatch = 10f * density
+        slices.forEachIndexed { index, slice ->
+            val color = palette[index % palette.size]
+            barPaint.color = color
+            canvas.drawRoundRect(
+                padding,
+                y - swatch + 2f * density,
+                padding + swatch,
+                y + 2f * density,
+                3f * density,
+                3f * density,
+                barPaint
+            )
+            val pct = (slice.value / total * 100.0)
+            val line = "${slice.label}  ·  ${formatMoney(slice.value)}  (${"%.0f".format(pct)}%)"
+            canvas.drawText(line, padding + swatch + 10f * density, y, labelPaint)
+            y += 26f * density
+        }
+        return y
+    }
+
+    private fun drawBars(canvas: Canvas, top: Float, padding: Float) {
+        canvas.drawText("Compare", padding, top, titlePaint)
+        var y = top + 18f * density
         val maxVal = slices.maxOf { it.value }.coerceAtLeast(1e-9)
-        val labelWidth = 90f * density
-        val valueWidth = 56f * density
+        val barLeft = padding
+        val barRight = width - padding
+        val barHeight = 14f * density
 
         slices.forEachIndexed { index, slice ->
-            val top = padding + index * rowHeight
-            val color = palette[index % palette.size]
-            textPaint.color = ContextCompat.getColor(context, R.color.text_primary)
-            canvas.drawText(slice.label, barLeft, top + rowHeight * 0.42f, textPaint)
-
-            val trackLeft = barLeft + labelWidth
-            val trackRight = barRight - valueWidth
-            val trackTop = top + rowHeight * 0.55f
-            val trackBottom = top + rowHeight * 0.85f
-            canvas.drawRoundRect(trackLeft, trackTop, trackRight, trackBottom, 6f, 6f, emptyPaint)
-
-            val filled = ((slice.value / maxVal) * (trackRight - trackLeft)).toFloat()
-            barPaint.color = color
-            canvas.drawRoundRect(trackLeft, trackTop, trackLeft + filled, trackBottom, 6f, 6f, barPaint)
-
-            secondaryTextPaint.color = ContextCompat.getColor(context, R.color.text_secondary)
-            canvas.drawText(
-                formatMoney(slice.value),
-                trackRight + 8f * density,
-                top + rowHeight * 0.75f,
-                secondaryTextPaint
-            )
+            canvas.drawText(slice.label, barLeft, y, metaPaint)
+            y += 6f * density
+            canvas.drawRoundRect(barLeft, y, barRight, y + barHeight, 7f * density, 7f * density, trackPaint)
+            val filled = ((slice.value / maxVal) * (barRight - barLeft)).toFloat().coerceAtLeast(barHeight)
+            barPaint.color = palette[index % palette.size]
+            canvas.drawRoundRect(barLeft, y, barLeft + filled, y + barHeight, 7f * density, 7f * density, barPaint)
+            y += barHeight + 14f * density
         }
     }
 }

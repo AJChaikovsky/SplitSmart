@@ -45,23 +45,20 @@ class MonthlySummaryActivity : AppCompatActivity() {
                 binding.progress.visibility = View.GONE
                 if (summary.isEmpty()) {
                     binding.tvSummary.text = getString(R.string.no_expenses_month)
-                    binding.tvChartTitle.visibility = View.GONE
-                    binding.categoryChart.visibility = View.GONE
+                    binding.layoutCharts.visibility = View.GONE
                     binding.categoryChart.clear()
+                    binding.payerChart.clear()
                 } else {
                     binding.tvSummary.text = buildString {
-                        appendLine("Period: ${summary.year}-${summary.month.toString().padStart(2, '0')}")
-                        appendLine("Expenses: ${summary.expenseCount}")
-                        appendLine("Total spending: ${formatMoney(summary.totalSpending)}")
-                        appendLine()
-                        appendLine("By category:")
-                        summary.categoryTotals.forEach { (cat, total) ->
-                            appendLine("  $cat: ${formatMoney(total)}")
-                        }
+                        appendLine("${summary.year}-${summary.month.toString().padStart(2, '0')}")
+                        appendLine("${summary.expenseCount} expenses · ${formatMoney(summary.totalSpending)} total")
                     }
-                    binding.tvChartTitle.visibility = View.VISIBLE
-                    binding.categoryChart.visibility = View.VISIBLE
-                    binding.categoryChart.setData(summary.categoryTotals)
+                    binding.layoutCharts.visibility = View.VISIBLE
+                    binding.categoryChart.setData(
+                        summary.categoryTotals,
+                        formatMoney(summary.totalSpending)
+                    )
+                    binding.payerChart.setData(summary.payerTotals)
                 }
             }
         }

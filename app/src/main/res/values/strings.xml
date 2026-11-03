@@ -37,4 +37,5 @@
     <string name="leave_group">Leave Group</string>
     <string name="remove_member">Remove</string>
     <string name="spending_by_category">Spending by category</string>
+    <string name="spending_by_payer">Paid by member</string>
 </resources>
