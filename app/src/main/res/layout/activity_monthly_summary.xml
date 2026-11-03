@@ -116,10 +116,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/spending_by_category"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textAppearance="@style/TextAppearance.SplitSmart.Section" />
+                android:textAppearance="@style/TextAppearance.SplitSmart.Eyebrow" />
             <com.splitsmart.app.ui.CategoryChartView
                 android:id="@+id/categoryChart"
                 android:layout_width="match_parent"
@@ -137,10 +134,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/spending_by_payer"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textAppearance="@style/TextAppearance.SplitSmart.Section" />
+                android:textAppearance="@style/TextAppearance.SplitSmart.Eyebrow" />
             <com.splitsmart.app.ui.PayerChartView
                 android:id="@+id/payerChart"
                 android:layout_width="match_parent"
@@ -153,10 +147,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/payer_insights"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textAppearance="@style/TextAppearance.SplitSmart.Section" />
+                android:textAppearance="@style/TextAppearance.SplitSmart.Eyebrow" />
             <TextView
                 android:id="@+id/tvPayerInsights"
                 android:layout_width="match_parent"

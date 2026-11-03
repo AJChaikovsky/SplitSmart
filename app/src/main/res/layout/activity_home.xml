@@ -32,7 +32,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/your_groups"
                     android:textAppearance="@style/TextAppearance.SplitSmart.Title"
-                    android:textSize="20sp" />
+                    android:textSize="26sp" />
 
                 <TextView
                     android:id="@+id/tvHeaderSubtitle"

@@ -43,7 +43,7 @@ public final class SystemBarInsets implements Application.ActivityLifecycleCallb
         });
         ViewCompat.requestApplyInsets(root);
 
-        View actionBar = activity.findViewById(androidx.appcompat.R.id.action_bar_container);
+        View actionBar = activity.findViewById(androidx.appcompat.R.id.action_bar);
         View content = activity.findViewById(android.R.id.content);
         if (actionBar != null && content != null) {
             actionBar.addOnLayoutChangeListener((bar, left, top, right, bottom,
@@ -54,9 +54,10 @@ public final class SystemBarInsets implements Application.ActivityLifecycleCallb
 
     /** Pads the content by however much the action bar overlaps it (zero if it doesn't). */
     private static void keepContentBelow(View actionBar, View content) {
-        int overlap = actionBar.getVisibility() == View.VISIBLE
-                ? actionBar.getBottom() - content.getTop()
-                : 0;
+        View container = (View) actionBar.getParent();
+        boolean visible = actionBar.getVisibility() == View.VISIBLE
+                && container.getVisibility() == View.VISIBLE;
+        int overlap = visible ? container.getTop() + actionBar.getBottom() - content.getTop() : 0;
         int padding = Math.max(0, overlap);
         if (content.getPaddingTop() != padding) {
             content.post(() -> content.setPadding(

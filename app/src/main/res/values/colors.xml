@@ -13,6 +13,7 @@
     <color name="text_secondary">#64676E</color>
     <color name="divider">#DDDFE1</color>
     <color name="error">#B3261E</color>
+    <color name="success">#1F7A4D</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="ic_launcher_background">@color/usc_cardinal</color>

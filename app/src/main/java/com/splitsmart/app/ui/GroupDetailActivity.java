@@ -43,7 +43,6 @@ public class GroupDetailActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle(getString(R.string.group_title));
         }
-        binding.btnMembers.setOnClickListener(v -> showMembers());
         binding.btnAddExpense.setOnClickListener(v ->
                 startActivity(new Intent(this, CreateExpenseActivity.class)
                         .putExtra(HomeActivity.EXTRA_GROUP_ID, groupId)));
@@ -118,9 +117,12 @@ public class GroupDetailActivity extends AppCompatActivity {
     private void refreshGroup() {
         if (loading != null) loading.cancel();
         loading = UiUtils.launchIo(this, () -> GroupManager.getInstance().getGroup(groupId), group -> {
-            if (getSupportActionBar() != null) getSupportActionBar().setTitle(group.getName());
             int count = group.getMemberIds().size();
-            binding.btnMembers.setText(getResources().getQuantityString(R.plurals.group_members, count, count));
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle(group.getName());
+                getSupportActionBar().setSubtitle(
+                        getResources().getQuantityString(R.plurals.group_members, count, count));
+            }
         }, message -> UiUtils.toast(this, message != null ? message : getString(R.string.group_load_error)));
     }
 

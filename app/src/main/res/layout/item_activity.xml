@@ -34,7 +34,7 @@
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="3dp"
                 android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
-                android:textColor="@color/primary"
+                android:textColor="@color/text_primary"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 

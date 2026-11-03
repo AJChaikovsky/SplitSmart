@@ -154,7 +154,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="@style/TextAppearance.SplitSmart.Section"
+        android:textAppearance="@style/TextAppearance.SplitSmart.Eyebrow"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="12dp"
         android:text="@string/activity_label" />

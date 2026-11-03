@@ -29,7 +29,7 @@
                 android:src="@drawable/ic_receipt"
                 android:importantForAccessibility="no"
                 android:layout_gravity="center"
-                app:tint="@color/primary"
+                app:tint="@color/text_secondary"
                 android:id="@+id/ivCategory" />
         </FrameLayout>
         <LinearLayout
@@ -56,7 +56,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
                 android:layout_marginTop="6dp"
-                android:textColor="@color/primary"
+                android:textColor="@color/text_primary"
                 android:id="@+id/tvCategory" />
         </LinearLayout>
         <TextView

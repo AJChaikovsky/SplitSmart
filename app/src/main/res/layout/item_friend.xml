@@ -24,7 +24,7 @@
             android:layout_height="44dp"
             android:background="@drawable/background_avatar"
             android:gravity="center"
-            android:textColor="@color/primary"
+            android:textColor="@color/text_primary"
             android:textSize="15sp"
             android:textStyle="bold" />
 

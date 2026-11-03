@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -117,14 +118,21 @@ public class GroupBalanceFragment extends GroupTabFragment {
             items.clear();
             items.addAll(data.balances);
             adapter.notifyDataSetChanged();
-            binding.tvToPay.setText(UiUtils.formatMoney(data.summary.getTotalToPay()));
-            binding.tvToReceive.setText(UiUtils.formatMoney(data.summary.getTotalToReceive()));
+            showTotal(binding.tvToPay, data.summary.getTotalToPay(), R.color.error);
+            showTotal(binding.tvToReceive, data.summary.getTotalToReceive(), R.color.success);
             binding.tvEmpty.setVisibility(data.balances.isEmpty() ? View.VISIBLE : View.GONE);
             binding.progress.setVisibility(View.GONE);
         }, message -> {
             binding.progress.setVisibility(View.GONE);
             UiUtils.toast(requireContext(), message);
         });
+    }
+
+    /** Shows an amount in its semantic color, or muted when it is zero. */
+    private void showTotal(TextView view, double amount, int activeColor) {
+        view.setText(UiUtils.formatMoney(amount));
+        int color = amount > 0.009 ? activeColor : R.color.text_secondary;
+        view.setTextColor(ContextCompat.getColor(requireContext(), color));
     }
 
     @Override

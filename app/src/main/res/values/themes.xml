@@ -42,17 +42,18 @@
     <style name="TextAppearance.SplitSmart.Body" parent="TextAppearance.MaterialComponents.Body1">
         <item name="fontFamily">@font/inter</item>
         <item name="android:fontFamily">@font/inter</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">15sp</item>
         <item name="android:textColor">@color/text_primary</item>
     </style>
     <style name="TextAppearance.SplitSmart.Caption" parent="TextAppearance.SplitSmart.Body">
         <item name="android:textSize">12sp</item>
         <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:letterSpacing">0.02</item>
     </style>
     <style name="TextAppearance.SplitSmart.Title" parent="TextAppearance.SplitSmart.Body">
-        <item name="android:textSize">22sp</item>
+        <item name="android:textSize">24sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:letterSpacing">-0.025</item>
+        <item name="android:letterSpacing">-0.02</item>
     </style>
     <style name="TextAppearance.SplitSmart.Section" parent="TextAppearance.SplitSmart.Body">
         <item name="android:textSize">13sp</item>
@@ -65,6 +66,15 @@
     </style>
     <style name="TextAppearance.SplitSmart.Amount" parent="TextAppearance.SplitSmart.Title">
         <item name="android:textSize">28sp</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+    <!-- Small all-caps section label; caps always get positive tracking. -->
+    <style name="TextAppearance.SplitSmart.Eyebrow" parent="TextAppearance.SplitSmart.Body">
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textColor">@color/text_secondary</item>
     </style>
     <style name="Widget.SplitSmart.TextView" parent="android:Widget.TextView">
         <item name="android:textAppearance">@style/TextAppearance.SplitSmart.Body</item>
@@ -89,6 +99,12 @@
         <item name="background">@drawable/background_action_bar</item>
         <item name="elevation">0dp</item>
         <item name="titleTextStyle">@style/TextAppearance.SplitSmart.ActionBar.Title</item>
+        <item name="subtitleTextStyle">@style/TextAppearance.SplitSmart.ActionBar.Subtitle</item>
+    </style>
+    <style name="TextAppearance.SplitSmart.ActionBar.Subtitle" parent="TextAppearance.Widget.AppCompat.Toolbar.Subtitle">
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">12sp</item>
     </style>
     <style name="TextAppearance.SplitSmart.ActionBar.Title" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
         <item name="android:fontFamily">@font/inter</item>
@@ -141,6 +157,8 @@
         <item name="cornerRadius">10dp</item>
         <item name="android:minWidth">48dp</item>
         <item name="strokeWidth">0dp</item>
+        <item name="android:textColor">@color/neutral_button_content</item>
+        <item name="iconTint">@color/neutral_button_content</item>
         <item name="backgroundTint">@android:color/transparent</item>
         <item name="iconSize">18dp</item>
         <item name="android:paddingStart">12dp</item>

@@ -9,20 +9,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-        <com.google.android.material.button.MaterialButton
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:id="@+id/btnMembers"
-            android:text="@string/members"
-            style="@style/Widget.SplitSmart.Button.TextButton"
-            android:minHeight="48dp"
-            android:layout_marginStart="12dp"
-            android:textSize="12sp"
-            android:textColor="@color/text_secondary"
-            app:icon="@drawable/ic_group"
-            app:iconTint="@color/text_secondary"
-            app:iconSize="16dp"
-            app:iconGravity="textStart" />
         <com.google.android.material.tabs.TabLayout
             android:layout_width="match_parent"
             android:layout_height="48dp"

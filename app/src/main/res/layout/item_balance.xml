@@ -26,7 +26,7 @@
                 android:textAppearance="@style/TextAppearance.SplitSmart.Body"
                 android:gravity="center"
                 android:background="@drawable/background_avatar"
-                android:textColor="@color/primary"
+                android:textColor="@color/text_primary"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 android:id="@+id/tvAvatar"
@@ -44,7 +44,7 @@
                 android:id="@+id/tvBalanceAmount"
                 android:textAppearance="@style/TextAppearance.SplitSmart.Section"
                 android:layout_marginStart="12dp"
-                android:textColor="@color/primary"
+                android:textColor="@color/text_primary"
                 android:textSize="14sp" />
         </LinearLayout>
     </LinearLayout>
