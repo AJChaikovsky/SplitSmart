@@ -148,18 +148,30 @@ class RequestManager(
         type: RequestType,
         groupId: String = ""
     ) {
-        val pending = requestRepository.listOutgoing(fromUserId).any { req ->
+        fun matches(req: AppRequest, from: String, to: String): Boolean =
             req.statusEnum() == RequestStatus.PENDING &&
-                req.toUserId == toUserId &&
+                req.fromUserId == from &&
+                req.toUserId == to &&
                 req.typeEnum() == type &&
                 (type != RequestType.GROUP_INVITE || req.groupId == groupId)
-        }
-        require(!pending) {
+
+        val outgoingPending = requestRepository.listOutgoing(fromUserId)
+            .any { matches(it, fromUserId, toUserId) }
+        require(!outgoingPending) {
             when (type) {
                 RequestType.FRIEND ->
                     "You already have a pending friend request to this person"
                 RequestType.GROUP_INVITE ->
                     "You already have a pending invite to this person for this group"
+            }
+        }
+
+        // Also block the reverse friend request while theirs is still pending.
+        if (type == RequestType.FRIEND) {
+            val incomingPending = requestRepository.listIncoming(fromUserId)
+                .any { matches(it, toUserId, fromUserId) }
+            require(!incomingPending) {
+                "This person already sent you a friend request — check Requests"
             }
         }
     }

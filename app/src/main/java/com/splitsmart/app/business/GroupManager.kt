@@ -42,7 +42,11 @@ class GroupManager(
             .distinct()
             .filter { it != current.uid }
             .forEach { uid ->
-                requestManager.sendGroupInvite(group.id, uid)
+                try {
+                    requestManager.sendGroupInvite(group.id, uid)
+                } catch (_: Exception) {
+                    // Group is created even if one invite cannot be sent (e.g. already pending).
+                }
             }
 
         return group
