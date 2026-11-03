@@ -76,6 +76,47 @@ class GroupManager(
         groupRepository.delete(groupId)
     }
 
+    /**
+     * Owner removes another member from the group. Cannot remove the owner.
+     */
+    suspend fun removeMember(groupId: String, memberUid: String): Group {
+        val group = groupRepository.getById(groupId)
+            ?: throw IllegalArgumentException("Group not found")
+        val currentUid = accountManager.currentUid()
+            ?: throw IllegalStateException("Not logged in")
+        require(group.ownerId == currentUid) { "Only the group owner can remove members" }
+        require(memberUid != group.ownerId) { "Cannot remove the group owner" }
+        require(memberUid in group.memberIds) { "User is not a member of this group" }
+
+        val member = userRepository.getById(memberUid)
+        val updated = group.copy(
+            memberIds = group.memberIds.filter { it != memberUid },
+            memberEmails = group.memberEmails.filter { it != member?.email }
+        )
+        return groupRepository.save(updated)
+    }
+
+    /**
+     * Non-owner leaves the group. Owners must delete the group instead.
+     */
+    suspend fun leaveGroup(groupId: String) {
+        val group = groupRepository.getById(groupId)
+            ?: throw IllegalArgumentException("Group not found")
+        val currentUid = accountManager.currentUid()
+            ?: throw IllegalStateException("Not logged in")
+        require(currentUid in group.memberIds) { "You are not a member of this group" }
+        require(group.ownerId != currentUid) {
+            "Owners cannot leave. Edit the group and delete it, or transfer ownership first."
+        }
+
+        val current = accountManager.getCurrentUser()
+        val updated = group.copy(
+            memberIds = group.memberIds.filter { it != currentUid },
+            memberEmails = group.memberEmails.filter { it != current?.email }
+        )
+        groupRepository.save(updated)
+    }
+
     suspend fun listGroupsForCurrentUser(): List<Group> {
         val uid = accountManager.currentUid()
             ?: throw IllegalStateException("Not logged in")

@@ -34,8 +34,8 @@ fun Context.confirm(title: String, message: String, onYes: () -> Unit) {
     AlertDialog.Builder(this)
         .setTitle(title)
         .setMessage(message)
-        .setPositiveButton(android.R.string.yes) { _, _ -> onYes() }
-        .setNegativeButton(android.R.string.no, null)
+        .setPositiveButton("Yes") { _, _ -> onYes() }
+        .setNegativeButton("No", null)
         .show()
 }
 

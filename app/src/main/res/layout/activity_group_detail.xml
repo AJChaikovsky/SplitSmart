@@ -33,14 +33,15 @@
             android:textStyle="bold"
             android:textColor="@color/text_primary" />
 
-        <TextView
-            android:id="@+id/tvMembers"
+        <LinearLayout
+            android:id="@+id/llMemberList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="@color/text_secondary" />
+            android:layout_marginTop="8dp"
+            android:orientation="vertical" />
 
         <LinearLayout
+            android:id="@+id/layoutAddMember"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -67,6 +68,15 @@
                 android:layout_marginStart="8dp"
                 android:text="Add" />
         </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLeaveGroup"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/leave_group"
+            android:visibility="gone" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddExpense"

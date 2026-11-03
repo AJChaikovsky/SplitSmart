@@ -87,7 +87,29 @@ class AccountManager(
         val validation = validateLogin(email, password)
         require(validation.ok) { validation.error ?: "Invalid login" }
 
-        val firebaseUser = authManager.login(email.trim().lowercase(), password)
+        val firebaseUser = try {
+            authManager.login(email.trim().lowercase(), password)
+        } catch (e: Exception) {
+            val msg = e.message.orEmpty()
+            when {
+                msg.contains("password is invalid", ignoreCase = true) ||
+                    msg.contains("WRONG_PASSWORD", ignoreCase = true) ||
+                    msg.contains("INVALID_LOGIN_CREDENTIALS", ignoreCase = true) ->
+                    throw IllegalArgumentException("Incorrect email or password")
+                msg.contains("no user record", ignoreCase = true) ||
+                    msg.contains("USER_NOT_FOUND", ignoreCase = true) ->
+                    throw IllegalArgumentException("No account found with that email")
+                msg.contains("badly formatted", ignoreCase = true) ||
+                    msg.contains("INVALID_EMAIL", ignoreCase = true) ->
+                    throw IllegalArgumentException("Email address is invalid")
+                msg.contains("network", ignoreCase = true) ||
+                    msg.contains("NETWORK_REQUEST_FAILED", ignoreCase = true) ->
+                    throw IllegalArgumentException("Network error. Check your connection and try again")
+                msg.contains("disabled", ignoreCase = true) ->
+                    throw IllegalArgumentException("This account has been disabled")
+                else -> throw e
+            }
+        }
         return userRepository.getById(firebaseUser.uid)
             ?: throw IllegalStateException("User profile not found in Firestore")
     }

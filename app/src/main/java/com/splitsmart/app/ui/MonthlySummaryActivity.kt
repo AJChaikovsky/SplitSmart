@@ -31,8 +31,8 @@ class MonthlySummaryActivity : AppCompatActivity() {
     private fun load() {
         val year = binding.etYear.text?.toString()?.toIntOrNull()
         val month = binding.etMonth.text?.toString()?.toIntOrNull()
-        if (year == null || month == null) {
-            toast("Enter valid year and month")
+        if (year == null || month == null || month !in 1..12) {
+            toast("Enter valid year and month (1-12)")
             return
         }
         binding.progress.visibility = View.VISIBLE
@@ -45,6 +45,9 @@ class MonthlySummaryActivity : AppCompatActivity() {
                 binding.progress.visibility = View.GONE
                 if (summary.isEmpty()) {
                     binding.tvSummary.text = getString(R.string.no_expenses_month)
+                    binding.tvChartTitle.visibility = View.GONE
+                    binding.categoryChart.visibility = View.GONE
+                    binding.categoryChart.clear()
                 } else {
                     binding.tvSummary.text = buildString {
                         appendLine("Period: ${summary.year}-${summary.month.toString().padStart(2, '0')}")
@@ -56,6 +59,9 @@ class MonthlySummaryActivity : AppCompatActivity() {
                             appendLine("  $cat: ${formatMoney(total)}")
                         }
                     }
+                    binding.tvChartTitle.visibility = View.VISIBLE
+                    binding.categoryChart.visibility = View.VISIBLE
+                    binding.categoryChart.setData(summary.categoryTotals)
                 }
             }
         }

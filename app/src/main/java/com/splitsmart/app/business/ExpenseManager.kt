@@ -57,7 +57,7 @@ class ExpenseManager(
         percentages: Map<String, Double> = emptyMap()
     ): Expense {
         require(title.isNotBlank()) { "Title is required" }
-        require(date.isNotBlank()) { "Date is required" }
+        MoneyUtils.requireIsoDate(date)
 
         val group = groupRepository.getById(groupId)
             ?: throw IllegalArgumentException("Group not found")
@@ -107,7 +107,7 @@ class ExpenseManager(
             ?: throw IllegalArgumentException("Group not found")
 
         require(title.isNotBlank()) { "Title is required" }
-        require(date.isNotBlank()) { "Date is required" }
+        MoneyUtils.requireIsoDate(date)
         validateExpenseInput(amount, payerId, participantIds, group.memberIds)
         val shares = computeShares(amount, participantIds, splitMethod, exactAmounts, percentages)
 

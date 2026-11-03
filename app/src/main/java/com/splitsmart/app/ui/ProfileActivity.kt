@@ -47,7 +47,10 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun load() {
         binding.progress.visibility = View.VISIBLE
-        launchIo {
+        launchIo(onError = {
+            binding.progress.visibility = View.GONE
+            toast(it)
+        }) {
             val user = accountManager.getCurrentUser()
             runOnUiThread {
                 binding.progress.visibility = View.GONE

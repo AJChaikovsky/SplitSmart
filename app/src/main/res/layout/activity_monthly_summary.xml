@@ -59,6 +59,23 @@
             android:textColor="@color/text_primary"
             android:textSize="16sp" />
 
+        <TextView
+            android:id="@+id/tvChartTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/spending_by_category"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <com.splitsmart.app.ui.CategoryChartView
+            android:id="@+id/categoryChart"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+
         <ProgressBar
             android:id="@+id/progress"
             android:layout_width="wrap_content"

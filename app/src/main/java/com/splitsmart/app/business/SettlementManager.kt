@@ -19,7 +19,7 @@ class SettlementManager(
             ?: throw IllegalStateException("Not logged in")
         require(amount > 0) { "Amount must be greater than 0" }
         require(MoneyUtils.hasAtMostTwoDecimals(amount)) { "Amount may have at most 2 decimal places" }
-        require(date.isNotBlank()) { "Date is required" }
+        MoneyUtils.requireIsoDate(date)
         require(toUserId != currentUid) { "Cannot settle with yourself" }
 
         val balances = balanceManager.getBalancesForGroup(groupId)
@@ -52,7 +52,7 @@ class SettlementManager(
         require(existing.creatorId == currentUid) { "Only the creator can edit this settlement" }
         require(amount > 0) { "Amount must be greater than 0" }
         require(MoneyUtils.hasAtMostTwoDecimals(amount)) { "Amount may have at most 2 decimal places" }
-        require(date.isNotBlank()) { "Date is required" }
+        MoneyUtils.requireIsoDate(date)
 
         // Re-check owed excluding this settlement's effect: add it back temporarily
         val balances = balanceManager.getBalancesForGroup(existing.groupId)

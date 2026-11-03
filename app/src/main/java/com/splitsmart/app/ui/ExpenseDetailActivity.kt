@@ -65,7 +65,10 @@ class ExpenseDetailActivity : AppCompatActivity() {
 
     private fun load() {
         binding.progress.visibility = View.VISIBLE
-        launchIo {
+        launchIo(onError = {
+            binding.progress.visibility = View.GONE
+            toast(it)
+        }) {
             val e = expenseManager.getExpense(expenseId)
             expense = e
             val payer = userRepository.getById(e.payerId)

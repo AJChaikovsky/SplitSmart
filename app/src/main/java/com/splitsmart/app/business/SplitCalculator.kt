@@ -29,4 +29,12 @@ object MoneyUtils {
         val cents = amount * 100.0
         return Math.abs(cents - Math.round(cents)) < 1e-9
     }
+
+    private val isoDate = Regex("^\\d{4}-\\d{2}-\\d{2}$")
+
+    fun requireIsoDate(date: String) {
+        require(isoDate.matches(date.trim())) {
+            "Date must be in YYYY-MM-DD format"
+        }
+    }
 }

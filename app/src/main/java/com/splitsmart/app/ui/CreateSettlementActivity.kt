@@ -30,15 +30,30 @@ class CreateSettlementActivity : AppCompatActivity() {
         supportActionBar?.title = getString(R.string.create_settlement)
 
         groupId = intent.getStringExtra(HomeActivity.EXTRA_GROUP_ID).orEmpty()
+        if (groupId.isBlank()) {
+            toast("Missing group")
+            finish()
+            return
+        }
         binding.etDate.setText(todayIso())
+        binding.etDate.isEnabled = false
+        binding.etDate.isFocusable = false
         binding.btnSave.setOnClickListener { save() }
         loadCreditors()
     }
 
     private fun loadCreditors() {
-        val uid = accountManager.currentUid() ?: return
+        val uid = accountManager.currentUid()
+        if (uid == null) {
+            toast("Not logged in")
+            finish()
+            return
+        }
         binding.progress.visibility = View.VISIBLE
-        launchIo {
+        launchIo(onError = {
+            binding.progress.visibility = View.GONE
+            toast(it)
+        }) {
             val balances = balanceManager.getBalancesForGroup(groupId)
             creditors = balances.filter { it.fromUserId == uid }.map { it.toUserId to it.amount }
             val labels = creditors.map { (toId, amount) ->

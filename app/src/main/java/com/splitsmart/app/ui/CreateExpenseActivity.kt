@@ -71,8 +71,16 @@ class CreateExpenseActivity : AppCompatActivity() {
     }
 
     private fun loadMembers() {
+        if (groupId.isBlank()) {
+            toast("Missing group")
+            finish()
+            return
+        }
         binding.progress.visibility = View.VISIBLE
-        launchIo {
+        launchIo(onError = {
+            binding.progress.visibility = View.GONE
+            toast(it)
+        }) {
             val group = groupManager.getGroup(groupId)
             members = group.memberIds.mapNotNull { userRepository.getById(it) }
             val existing = editingExpenseId?.let { expenseManager.getExpense(it) }

@@ -34,4 +34,7 @@
     <string name="total_to_receive">Total to receive</string>
     <string name="search">Search</string>
     <string name="filter">Filter</string>
+    <string name="leave_group">Leave Group</string>
+    <string name="remove_member">Remove</string>
+    <string name="spending_by_category">Spending by category</string>
 </resources>
