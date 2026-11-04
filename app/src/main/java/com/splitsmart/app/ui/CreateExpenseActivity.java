@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -37,6 +38,9 @@ import java.util.Map;
 
 public class CreateExpenseActivity extends AppCompatActivity {
     public static final String EXTRA_EXPENSE_ID = "expenseId";
+    private static final String STATE_PARTICIPANTS = "participants";
+    private static final String STATE_PAYER = "payerId";
+    private static final String STATE_SPLIT_VALUES = "splitValues";
 
     private ActivityCreateExpenseBinding binding;
     private final ExpenseManager expenseManager = ExpenseManager.getInstance();
@@ -48,6 +52,11 @@ public class CreateExpenseActivity extends AppCompatActivity {
     private final Map<String, CheckBox> participantChecks = new LinkedHashMap<>();
     private final Map<String, EditText> valueInputs = new LinkedHashMap<>();
     private String editingExpenseId;
+    /** Saved form state after a rotation or theme change; null on a fresh open. */
+    private Bundle restoredState;
+    /** Per-person split values to put back once the inputs are rebuilt. */
+    private final Map<String, String> pendingSplitValues = new HashMap<>();
+    private SplitMethod valuesMethod;
 
     /** Group members plus the expense being edited (null when creating). */
     private static class FormData {
@@ -95,6 +104,13 @@ public class CreateExpenseActivity extends AppCompatActivity {
         });
 
         binding.btnSave.setOnClickListener(v -> save());
+        restoredState = savedInstanceState;
+        if (restoredState != null) {
+            Bundle values = restoredState.getBundle(STATE_SPLIT_VALUES);
+            if (values != null) {
+                for (String uid : values.keySet()) pendingSplitValues.put(uid, values.getString(uid));
+            }
+        }
         loadMembers();
     }
 
@@ -134,10 +150,16 @@ public class CreateExpenseActivity extends AppCompatActivity {
             binding.spPayer.setAdapter(UiUtils.choiceAdapter(this, labels));
             binding.llParticipants.removeAllViews();
             participantChecks.clear();
+            List<String> restoredParticipants = restoredState != null
+                    ? restoredState.getStringArrayList(STATE_PARTICIPANTS) : null;
             for (User user : members) {
                 MaterialCheckBox checkBox = new MaterialCheckBox(this);
                 checkBox.setText(label(user));
-                checkBox.setChecked(existing == null || existing.getParticipantIds().contains(user.getUid()));
+                if (restoredParticipants != null) {
+                    checkBox.setChecked(restoredParticipants.contains(user.getUid()));
+                } else {
+                    checkBox.setChecked(existing == null || existing.getParticipantIds().contains(user.getUid()));
+                }
                 checkBox.setOnCheckedChangeListener((button, checked) -> {
                     String payerId = currentPayerId();
                     if (payerId != null && user.getUid().equals(payerId) && !checked) {
@@ -152,18 +174,22 @@ public class CreateExpenseActivity extends AppCompatActivity {
                 participantChecks.put(user.getUid(), checkBox);
                 binding.llParticipants.addView(checkBox);
             }
-            if (existing != null) {
+            // Text fields and the category/split spinners restore themselves after a rotation;
+            // only fill them from the saved expense on a fresh open.
+            if (existing != null && restoredState == null) {
                 binding.etTitle.setText(existing.getTitle());
                 binding.etAmount.setText(String.valueOf(existing.getAmount()));
                 binding.etDate.setText(existing.getDate());
                 binding.etNote.setText(existing.getNote());
                 binding.spCategory.setSelection(existing.categoryEnum().ordinal());
                 binding.spSplitMethod.setSelection(existing.splitMethodEnum().ordinal());
-                for (int i = 0; i < members.size(); i++) {
-                    if (members.get(i).getUid().equals(existing.getPayerId())) {
-                        binding.spPayer.setSelection(i);
-                        break;
-                    }
+            }
+            String payerId = restoredState != null ? restoredState.getString(STATE_PAYER)
+                    : existing != null ? existing.getPayerId() : null;
+            for (int i = 0; i < members.size(); i++) {
+                if (members.get(i).getUid().equals(payerId)) {
+                    binding.spPayer.setSelection(i);
+                    break;
                 }
             }
             lockPayerAsParticipant();
@@ -239,9 +265,18 @@ public class CreateExpenseActivity extends AppCompatActivity {
     }
 
     private void rebuildSplitValueInputs() {
+        SplitMethod method = selectedMethod();
+        // Keep what was typed when only the participants change (not when the split method changes).
+        Map<String, String> keep = new HashMap<>();
+        if (method == valuesMethod) {
+            for (Map.Entry<String, EditText> entry : valueInputs.entrySet()) {
+                keep.put(entry.getKey(), UiUtils.text(entry.getValue()));
+            }
+        }
+        keep.putAll(pendingSplitValues);
         binding.llSplitValues.removeAllViews();
         valueInputs.clear();
-        SplitMethod method = selectedMethod();
+        valuesMethod = method;
         if (method == null) return;
         if (method == SplitMethod.EQUAL) {
             updateSharePreview();
@@ -276,6 +311,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
             input.setHint(method == SplitMethod.EXACT ? "0.00" : "%");
             input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
             input.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            if (keep.containsKey(uid)) input.setText(keep.get(uid));
             input.setOnFocusChangeListener((v, hasFocus) -> updateSharePreview());
 
             valueInputs.put(uid, input);
@@ -283,7 +319,33 @@ public class CreateExpenseActivity extends AppCompatActivity {
             row.addView(input);
             binding.llSplitValues.addView(row);
         }
+        if (!valueInputs.isEmpty()) pendingSplitValues.clear();
         updateSharePreview();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (participantChecks.isEmpty()) {
+            // Members haven't loaded yet: carry the previous saved state forward.
+            if (restoredState != null) {
+                outState.putStringArrayList(STATE_PARTICIPANTS, restoredState.getStringArrayList(STATE_PARTICIPANTS));
+                outState.putString(STATE_PAYER, restoredState.getString(STATE_PAYER));
+            }
+        } else {
+            ArrayList<String> participants = new ArrayList<>();
+            for (Map.Entry<String, CheckBox> entry : participantChecks.entrySet()) {
+                if (entry.getValue().isChecked()) participants.add(entry.getKey());
+            }
+            outState.putStringArrayList(STATE_PARTICIPANTS, participants);
+            outState.putString(STATE_PAYER, currentPayerId());
+        }
+        Bundle values = new Bundle();
+        for (Map.Entry<String, String> entry : pendingSplitValues.entrySet()) values.putString(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, EditText> entry : valueInputs.entrySet()) {
+            values.putString(entry.getKey(), UiUtils.text(entry.getValue()));
+        }
+        outState.putBundle(STATE_SPLIT_VALUES, values);
     }
 
     /** Reads the per-person inputs as a userId -> value map (blank or invalid counts as 0). */

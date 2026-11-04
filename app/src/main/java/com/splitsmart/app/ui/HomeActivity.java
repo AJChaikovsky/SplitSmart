@@ -37,6 +37,7 @@ import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
     public static final String EXTRA_GROUP_ID = "groupId";
+    private static final String STATE_TAB = "homeTab";
 
     private ActivityHomeBinding binding;
     private final GroupManager groupManager = GroupManager.getInstance();
@@ -75,12 +76,22 @@ public class HomeActivity extends AppCompatActivity {
 
         binding.btnProfile.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
         binding.fabCreate.setOnClickListener(v -> onFabClick());
+        // Come back to the same tab after a rotation or theme change.
+        int tab = savedInstanceState != null
+                ? savedInstanceState.getInt(STATE_TAB, R.id.nav_groups)
+                : R.id.nav_groups;
+        binding.bottomNav.setSelectedItemId(tab);
         binding.bottomNav.setOnItemSelectedListener(item -> {
             showTab(item.getItemId());
             return true;
         });
-        binding.bottomNav.setSelectedItemId(R.id.nav_groups);
-        showTab(R.id.nav_groups);
+        showTab(tab);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putInt(STATE_TAB, currentTab);
+        super.onSaveInstanceState(outState);
     }
 
     @Override

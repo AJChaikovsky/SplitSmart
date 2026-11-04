@@ -33,10 +33,13 @@ public class EditGroupActivity extends AppCompatActivity {
             return;
         }
 
-        UiUtils.launchIo(this, () -> groupManager.getGroup(groupId), group -> {
-            binding.etName.setText(group.getName());
-            binding.etDescription.setText(group.getDescription());
-        });
+        // After a rotation or theme change the fields restore themselves; keep any unsaved edits.
+        if (savedInstanceState == null) {
+            UiUtils.launchIo(this, () -> groupManager.getGroup(groupId), group -> {
+                binding.etName.setText(group.getName());
+                binding.etDescription.setText(group.getDescription());
+            });
+        }
 
         binding.btnSave.setOnClickListener(v -> {
             String name = UiUtils.text(binding.etName);

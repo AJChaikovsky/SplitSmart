@@ -41,10 +41,11 @@ public class ProfileActivity extends AppCompatActivity {
             finish();
         });
 
-        load();
+        load(savedInstanceState == null);
     }
 
-    private void load() {
+    /** @param fillName false after a rotation/theme change, so an unsaved name edit is kept. */
+    private void load(boolean fillName) {
         binding.progress.setVisibility(View.VISIBLE);
         UiUtils.launchIo(this, accountManager::getCurrentUser, user -> {
             binding.progress.setVisibility(View.GONE);
@@ -55,7 +56,7 @@ public class ProfileActivity extends AppCompatActivity {
             }
             binding.tvEmail.setText(user.getEmail());
             binding.tvUscId.setText("USC ID: " + user.getUscId());
-            binding.etName.setText(user.getName());
+            if (fillName) binding.etName.setText(user.getName());
         }, this::showError);
     }
 

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.checkbox.MaterialCheckBox;
@@ -23,7 +24,10 @@ public class CreateGroupActivity extends AppCompatActivity {
     private ActivityCreateGroupBinding binding;
     private final GroupManager groupManager = GroupManager.getInstance();
     private final FriendManager friendManager = FriendManager.getInstance();
+    private static final String STATE_CHECKED = "checkedFriends";
     private final Map<String, MaterialCheckBox> friendChecks = new LinkedHashMap<>();
+    /** Friends ticked before a rotation or theme change, re-applied once the list reloads. */
+    private ArrayList<String> restoredChecked;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +39,7 @@ public class CreateGroupActivity extends AppCompatActivity {
             getSupportActionBar().setTitle(getString(R.string.create_group));
         }
 
+        if (savedInstanceState != null) restoredChecked = savedInstanceState.getStringArrayList(STATE_CHECKED);
         loadFriends();
 
         binding.btnSave.setOnClickListener(v -> {
@@ -75,9 +80,22 @@ public class CreateGroupActivity extends AppCompatActivity {
             MaterialCheckBox checkBox = (MaterialCheckBox) inflater.inflate(
                     R.layout.item_friend_check, binding.llFriendChecks, false);
             checkBox.setText(friend.getName() + " (" + friend.getEmail() + ")");
+            if (restoredChecked != null) checkBox.setChecked(restoredChecked.contains(friend.getUid()));
             friendChecks.put(friend.getUid(), checkBox);
             binding.llFriendChecks.addView(checkBox);
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        ArrayList<String> checked = new ArrayList<>();
+        for (Map.Entry<String, MaterialCheckBox> entry : friendChecks.entrySet()) {
+            if (entry.getValue().isChecked()) checked.add(entry.getKey());
+        }
+        // Before the list loads, carry forward whatever was restored.
+        outState.putStringArrayList(STATE_CHECKED, friendChecks.isEmpty() && restoredChecked != null
+                ? restoredChecked : checked);
+        super.onSaveInstanceState(outState);
     }
 
     private void showError(String message) {

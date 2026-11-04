@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.splitsmart.app.R;
@@ -27,7 +28,13 @@ public class CreateSettlementActivity extends AppCompatActivity {
     private final AccountManager accountManager = AccountManager.getInstance();
     private final UserRepository userRepository = UserRepository.getInstance();
 
+    private static final String STATE_PAY_TO = "payTo";
+    private static final String STATE_AMOUNT = "amount";
+
     private String groupId;
+    /** Who was selected and what amount was typed before a rotation or theme change. */
+    private String restoredPayTo;
+    private String restoredAmount;
     /** Debts the current user owes, in spinner order. */
     private List<BalanceManager.PairBalance> creditors = Collections.emptyList();
 
@@ -63,6 +70,10 @@ public class CreateSettlementActivity extends AppCompatActivity {
         binding.etDate.setClickable(true);
         binding.etDate.setOnClickListener(v -> showDatePicker());
         binding.btnSave.setOnClickListener(v -> save());
+        if (savedInstanceState != null) {
+            restoredPayTo = savedInstanceState.getString(STATE_PAY_TO);
+            restoredAmount = savedInstanceState.getString(STATE_AMOUNT);
+        }
         loadCreditors();
     }
 
@@ -114,8 +125,16 @@ public class CreateSettlementActivity extends AppCompatActivity {
             UiUtils.onItemSelected(binding.spPayTo, position -> {
                 double owed = creditors.get(position).getAmount();
                 binding.tvOwed.setText("You owe " + UiUtils.formatMoney(owed));
-                binding.etAmount.setText(String.format("%.2f", owed));
+                if (restoredAmount != null) {
+                    binding.etAmount.setText(restoredAmount);
+                    restoredAmount = null;
+                } else {
+                    binding.etAmount.setText(String.format("%.2f", owed));
+                }
             });
+            for (int i = 0; i < creditors.size(); i++) {
+                if (creditors.get(i).getToUserId().equals(restoredPayTo)) binding.spPayTo.setSelection(i);
+            }
         }, this::showError);
     }
 
@@ -136,6 +155,15 @@ public class CreateSettlementActivity extends AppCompatActivity {
                     UiUtils.toast(this, "Settlement recorded");
                     finish();
                 }, this::showError);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        int position = binding.spPayTo.getSelectedItemPosition();
+        boolean loaded = position >= 0 && position < creditors.size();
+        outState.putString(STATE_PAY_TO, loaded ? creditors.get(position).getToUserId() : restoredPayTo);
+        outState.putString(STATE_AMOUNT, loaded ? UiUtils.text(binding.etAmount) : restoredAmount);
     }
 
     private void showError(String message) {
