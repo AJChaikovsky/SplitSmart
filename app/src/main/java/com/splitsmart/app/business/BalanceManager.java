@@ -4,6 +4,8 @@ import com.splitsmart.app.data.ExpenseRepository;
 import com.splitsmart.app.data.SettlementRepository;
 import com.splitsmart.app.model.Expense;
 import com.splitsmart.app.model.ExpenseShare;
+import com.splitsmart.app.model.Group;
+import com.splitsmart.app.model.GroupBalance;
 import com.splitsmart.app.model.Settlement;
 
 import java.util.ArrayList;
@@ -161,6 +163,13 @@ public class BalanceManager {
                 MoneyUtils.roundToCents(totalToReceive),
                 debts
         );
+    }
+
+    /** The user's totals in one group, computed from that group's expenses and settlements. */
+    public GroupBalance summarizeGroupForUser(Group group, String userId,
+                                              List<Expense> groupExpenses, List<Settlement> groupSettlements) {
+        UserBalanceSummary summary = summarizeForUser(userId, computePairwiseBalances(groupExpenses, groupSettlements));
+        return new GroupBalance(group.getId(), group.getName(), summary.getTotalToPay(), summary.getTotalToReceive());
     }
 
     public List<PairBalance> getBalancesForGroup(String groupId) {

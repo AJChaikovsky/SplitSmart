@@ -28,6 +28,7 @@ import com.splitsmart.app.model.ActivityItem;
 import com.splitsmart.app.model.ActivityKind;
 import com.splitsmart.app.model.FriendBalance;
 import com.splitsmart.app.model.Group;
+import com.splitsmart.app.model.GroupBalance;
 import com.splitsmart.app.model.IncomingRequest;
 import com.splitsmart.app.model.RequestType;
 import com.splitsmart.app.model.TransactionType;
@@ -190,13 +191,42 @@ public class HomeActivity extends AppCompatActivity {
         }, this::showError);
     }
 
+    /** Activity rows plus per-group balances, loaded together for the Activity tab. */
+    private static class ActivityData {
+        final List<ActivityItem> items;
+        final List<GroupBalance> balances;
+
+        ActivityData(List<ActivityItem> items, List<GroupBalance> balances) {
+            this.items = items;
+            this.balances = balances;
+        }
+    }
+
     private void loadActivity() {
         binding.progress.setVisibility(View.VISIBLE);
-        UiUtils.launchIo(this, activityManager::getMyActivity, items -> {
+        UiUtils.launchIo(this, () -> new ActivityData(activityManager.getMyActivity(),
+                activityManager.getGroupBalances()), data -> {
             binding.progress.setVisibility(View.GONE);
-            activityAdapter.submit(items);
-            binding.tvEmptyActivity.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
+            activityAdapter.submit(data.items);
+            binding.tvEmptyActivity.setVisibility(data.items.isEmpty() ? View.VISIBLE : View.GONE);
+            showGroupBalances(data.balances);
         }, this::showError);
+    }
+
+    private void showGroupBalances(List<GroupBalance> balances) {
+        binding.cardGroupBalances.setVisibility(balances.isEmpty() ? View.GONE : View.VISIBLE);
+        double toPay = 0.0;
+        double toReceive = 0.0;
+        for (GroupBalance balance : balances) {
+            toPay += balance.getToPay();
+            toReceive += balance.getToReceive();
+        }
+        binding.tvGroupTotals.setText(getString(R.string.group_totals,
+                UiUtils.formatMoney(toPay), UiUtils.formatMoney(toReceive)));
+        binding.groupBalanceChart.setData(balances);
+        boolean settled = binding.groupBalanceChart.isEmpty();
+        binding.groupBalanceChart.setVisibility(settled ? View.GONE : View.VISIBLE);
+        binding.tvGroupsSettled.setVisibility(settled ? View.VISIBLE : View.GONE);
     }
 
     private void showAddFriendDialog() {

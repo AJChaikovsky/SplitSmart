@@ -5,6 +5,8 @@ import static org.junit.Assert.assertTrue;
 
 import com.splitsmart.app.model.Expense;
 import com.splitsmart.app.model.ExpenseShare;
+import com.splitsmart.app.model.Group;
+import com.splitsmart.app.model.GroupBalance;
 import com.splitsmart.app.model.Settlement;
 
 import org.junit.Test;
@@ -99,5 +101,27 @@ public class BalanceManagerTest {
         BalanceManager.UserBalanceSummary bobSummary = manager.summarizeForUser("bob", balances);
         assertEquals(7.0, bobSummary.getTotalToPay(), 0.0);
         assertEquals(0.0, bobSummary.getTotalToReceive(), 0.0);
+    }
+
+    @Test
+    public void summarizesOneGroupForUser() {
+        Group group = new Group("g1", "Roommates", "", "alice",
+                Arrays.asList("a@usc.edu", "b@usc.edu", "c@usc.edu"), Arrays.asList("alice", "bob", "carol"), 0L);
+        // alice paid $30 for three people; bob paid $9 split with alice
+        Expense rent = expense("e1", "alice", 30.0,
+                new ExpenseShare("alice", 10.0), new ExpenseShare("bob", 10.0), new ExpenseShare("carol", 10.0));
+        Expense snacks = expense("e2", "bob", 9.0, new ExpenseShare("alice", 4.5), new ExpenseShare("bob", 4.5));
+
+        GroupBalance alice = manager.summarizeGroupForUser(group, "alice",
+                Arrays.asList(rent, snacks), Collections.emptyList());
+        assertEquals("Roommates", alice.getGroupName());
+        assertEquals(0.0, alice.getToPay(), 0.0);
+        assertEquals(15.5, alice.getToReceive(), 0.0); // bob nets 5.50, carol 10.00
+
+        GroupBalance carol = manager.summarizeGroupForUser(group, "carol",
+                Arrays.asList(rent, snacks), Collections.emptyList());
+        assertEquals(10.0, carol.getToPay(), 0.0);
+        assertEquals(0.0, carol.getToReceive(), 0.0);
+        assertTrue(!carol.isSettled());
     }
 }

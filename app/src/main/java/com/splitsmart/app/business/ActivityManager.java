@@ -10,6 +10,7 @@ import com.splitsmart.app.model.ActivityItem;
 import com.splitsmart.app.model.ActivityKind;
 import com.splitsmart.app.model.Expense;
 import com.splitsmart.app.model.Group;
+import com.splitsmart.app.model.GroupBalance;
 import com.splitsmart.app.model.Settlement;
 import com.splitsmart.app.model.User;
 
@@ -27,20 +28,36 @@ public class ActivityManager {
     private final SettlementRepository settlementRepository;
     private final UserRepository userRepository;
     private final AccountManager accountManager;
+    private final BalanceManager balanceManager;
 
     public ActivityManager() {
         this(GroupRepository.getInstance(), ExpenseRepository.getInstance(), SettlementRepository.getInstance(),
-                UserRepository.getInstance(), AccountManager.getInstance());
+                UserRepository.getInstance(), AccountManager.getInstance(), BalanceManager.getInstance());
     }
 
     public ActivityManager(GroupRepository groupRepository, ExpenseRepository expenseRepository,
                            SettlementRepository settlementRepository, UserRepository userRepository,
-                           AccountManager accountManager) {
+                           AccountManager accountManager, BalanceManager balanceManager) {
         this.groupRepository = groupRepository;
         this.expenseRepository = expenseRepository;
         this.settlementRepository = settlementRepository;
         this.userRepository = userRepository;
         this.accountManager = accountManager;
+        this.balanceManager = balanceManager;
+    }
+
+    /** What the current user owes and is owed in each of their groups, largest amounts first. */
+    public List<GroupBalance> getGroupBalances() {
+        String uid = requireState(accountManager.currentUid(), "Not logged in");
+        List<GroupBalance> result = new ArrayList<>();
+        for (Group group : groupRepository.getGroupsForUser(uid)) {
+            result.add(balanceManager.summarizeGroupForUser(group, uid,
+                    expenseRepository.getByGroup(group.getId()),
+                    settlementRepository.getByGroup(group.getId())));
+        }
+        result.sort(Comparator.comparingDouble(
+                (GroupBalance balance) -> balance.getToPay() + balance.getToReceive()).reversed());
+        return result;
     }
 
     public static ActivityManager getInstance() {

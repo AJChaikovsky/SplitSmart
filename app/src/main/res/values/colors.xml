@@ -14,6 +14,9 @@
     <color name="divider">#DDDFE1</color>
     <color name="error">#B3261E</color>
     <color name="success">#1F7A4D</color>
+    <!-- USC chart colors: cardinal for what you owe, gold for what you're owed. -->
+    <color name="chart_owe">#B52F3B</color>
+    <color name="chart_owed">#E3AA14</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="ic_launcher_background">@color/usc_cardinal</color>

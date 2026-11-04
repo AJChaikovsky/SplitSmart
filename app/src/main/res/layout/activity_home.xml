@@ -178,6 +178,45 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
+                <LinearLayout
+                    android:id="@+id/cardGroupBalances"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/background_card"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/balances_by_group"
+                        android:textAppearance="@style/TextAppearance.SplitSmart.Eyebrow" />
+
+                    <TextView
+                        android:id="@+id/tvGroupTotals"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:textAppearance="@style/TextAppearance.SplitSmart.Body" />
+
+                    <com.splitsmart.app.ui.GroupBalanceChartView
+                        android:id="@+id/groupBalanceChart"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp" />
+
+                    <TextView
+                        android:id="@+id/tvGroupsSettled"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/all_groups_settled"
+                        android:textAppearance="@style/TextAppearance.SplitSmart.Caption"
+                        android:visibility="gone" />
+                </LinearLayout>
+
                 <TextView
                     android:id="@+id/tvEmptyActivity"
                     android:layout_width="match_parent"
