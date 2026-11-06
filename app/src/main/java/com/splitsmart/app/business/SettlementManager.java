@@ -36,21 +36,28 @@ public class SettlementManager {
         return instance;
     }
 
-    public Settlement createSettlement(String groupId, String toUserId, double amount, String date, String note) {
+    /**
+     * Records an off-app payment from {@code fromUserId} to {@code toUserId}. Either the payer or the
+     * recipient may record it; the amount must be positive and no more than the payer currently owes.
+     */
+    public Settlement createSettlement(String groupId, String fromUserId, String toUserId, double amount,
+                                       String date, String note) {
         String currentUid = requireState(accountManager.currentUid(), "Not logged in");
+        require(currentUid.equals(fromUserId) || currentUid.equals(toUserId),
+                "You can only record a payment you made or received");
         require(amount > 0, "Amount must be greater than 0");
         require(MoneyUtils.hasAtMostTwoDecimals(amount), "Amount may have at most 2 decimal places");
         MoneyUtils.requireIsoDate(date);
-        require(!toUserId.equals(currentUid), "Cannot settle with yourself");
+        require(!toUserId.equals(fromUserId), "Cannot settle with yourself");
 
         List<BalanceManager.PairBalance> balances = balanceManager.getBalancesForGroup(groupId);
-        double owed = balanceManager.amountOwed(currentUid, toUserId, balances);
-        require(owed > 0, "You do not owe this user anything");
-        require(amount <= owed + 0.001, "Amount cannot exceed what you owe (" + owed + ")");
+        double owed = balanceManager.amountOwed(fromUserId, toUserId, balances);
+        require(owed > 0, "There is no debt between these members to settle");
+        require(amount <= owed + 0.001, "Amount cannot exceed what is owed (" + String.format("$%.2f", owed) + ")");
 
         Settlement settlement = new Settlement();
         settlement.setGroupId(groupId);
-        settlement.setFromUserId(currentUid);
+        settlement.setFromUserId(fromUserId);
         settlement.setToUserId(toUserId);
         settlement.setAmount(MoneyUtils.roundToCents(amount));
         settlement.setDate(date.trim());
@@ -59,22 +66,22 @@ public class SettlementManager {
         return settlementRepository.save(settlement);
     }
 
-    public Settlement editSettlement(String settlementId, double amount, String date, String note) {
+    /** Updates a settlement's amount and note. Its recorded date never changes. */
+    public Settlement editSettlement(String settlementId, double amount, String note) {
         Settlement existing = requireFound(settlementRepository.getById(settlementId), "Settlement not found");
         String currentUid = requireState(accountManager.currentUid(), "Not logged in");
         require(existing.getCreatorId().equals(currentUid), "Only the creator can edit this settlement");
         require(amount > 0, "Amount must be greater than 0");
         require(MoneyUtils.hasAtMostTwoDecimals(amount), "Amount may have at most 2 decimal places");
-        MoneyUtils.requireIsoDate(date);
 
         // Re-check owed excluding this settlement's effect: add it back temporarily
         List<BalanceManager.PairBalance> balances = balanceManager.getBalancesForGroup(existing.getGroupId());
         double currentOwed = balanceManager.amountOwed(existing.getFromUserId(), existing.getToUserId(), balances);
         double maxAllowed = currentOwed + existing.getAmount();
-        require(amount <= maxAllowed + 0.001, "Amount cannot exceed what is owed (" + maxAllowed + ")");
+        require(amount <= maxAllowed + 0.001,
+                "Amount cannot exceed what is owed (" + String.format("$%.2f", maxAllowed) + ")");
 
         existing.setAmount(MoneyUtils.roundToCents(amount));
-        existing.setDate(date.trim());
         existing.setNote(note.trim());
         return settlementRepository.save(existing);
     }

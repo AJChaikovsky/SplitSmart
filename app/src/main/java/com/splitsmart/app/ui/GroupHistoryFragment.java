@@ -29,7 +29,9 @@ import com.splitsmart.app.model.User;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GroupHistoryFragment extends GroupTabFragment {
     private ActivityHistoryBinding binding;
@@ -40,6 +42,8 @@ public class GroupHistoryFragment extends GroupTabFragment {
     private List<User> members = Collections.emptyList();
     private String restoredMemberId = null;
     private final List<Transaction> items = new ArrayList<>();
+    /** userId -> display name for everyone appearing in the history (including former members). */
+    private final Map<String, String> names = new HashMap<>();
     private final RecyclerView.Adapter<TransactionHolder> adapter = new RecyclerView.Adapter<TransactionHolder>() {
         @NonNull
         @Override
@@ -58,7 +62,7 @@ public class GroupHistoryFragment extends GroupTabFragment {
             Transaction transaction = items.get(position);
             boolean settlement = transaction.getType() == TransactionType.SETTLEMENT;
             holder.title.setText(settlement ? getString(R.string.settlement_label) : transaction.getTitle());
-            holder.date.setText(transaction.getDate());
+            holder.date.setText(transaction.getDate() + " · " + involvedUsers(transaction));
             holder.amount.setText(UiUtils.formatMoney(transaction.getAmount()));
             String category = transaction.getCategory().trim().isEmpty() ? "OTHER" : transaction.getCategory();
             holder.category.setText(settlement ? getString(R.string.settlement_label) : UiUtils.displayChoice(category));
@@ -71,15 +75,39 @@ public class GroupHistoryFragment extends GroupTabFragment {
         }
     };
 
-    /** Group members plus the matching transactions, loaded together. */
+    /** Group members, the matching transactions and the names of everyone involved, loaded together. */
     private static class HistoryData {
         final List<User> users;
         final List<Transaction> transactions;
+        final Map<String, String> names;
 
-        HistoryData(List<User> users, List<Transaction> transactions) {
+        HistoryData(List<User> users, List<Transaction> transactions, Map<String, String> names) {
             this.users = users;
             this.transactions = transactions;
+            this.names = names;
         }
+    }
+
+    private String nameOf(String uid) {
+        String name = names.get(uid);
+        return name != null ? name : uid;
+    }
+
+    /** "Bob paid Alice" for a settlement; "Paid by Alice · Alice, Bob, Carol" for an expense. */
+    private String involvedUsers(Transaction transaction) {
+        if (transaction.getType() == TransactionType.SETTLEMENT && transaction.getSettlement() != null) {
+            return nameOf(transaction.getSettlement().getFromUserId()) + " paid "
+                    + nameOf(transaction.getSettlement().getToUserId());
+        }
+        StringBuilder text = new StringBuilder();
+        if (transaction.getExpense() != null) {
+            text.append("Paid by ").append(nameOf(transaction.getExpense().getPayerId())).append(" · ");
+        }
+        for (int i = 0; i < transaction.getMemberIds().size(); i++) {
+            if (i > 0) text.append(", ");
+            text.append(nameOf(transaction.getMemberIds().get(i)));
+        }
+        return text.toString();
     }
 
     public GroupHistoryFragment() {
@@ -176,9 +204,23 @@ public class GroupHistoryFragment extends GroupTabFragment {
             for (User user : users) {
                 if (user.getUid().equals(filter.getMemberId())) memberId = user.getUid();
             }
-            return new HistoryData(users, historyManager.getHistory(groupId, filter.withMemberId(memberId)));
+            List<Transaction> transactions = historyManager.getHistory(groupId, filter.withMemberId(memberId));
+            Map<String, String> labels = new HashMap<>();
+            for (User user : users) labels.put(user.getUid(), user.getName());
+            for (Transaction tx : transactions) {
+                List<String> ids = new ArrayList<>(tx.getMemberIds());
+                if (tx.getExpense() != null) ids.add(tx.getExpense().getPayerId());
+                for (String id : ids) {
+                    if (labels.containsKey(id)) continue;
+                    User former = userRepository.getById(id);
+                    labels.put(id, former != null ? former.getName() : id);
+                }
+            }
+            return new HistoryData(users, transactions, labels);
         }, data -> {
             members = data.users;
+            names.clear();
+            names.putAll(data.names);
             List<String> labels = new ArrayList<>();
             labels.add(getString(R.string.all_members));
             int selected = 0;

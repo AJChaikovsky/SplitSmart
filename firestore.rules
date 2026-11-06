@@ -71,11 +71,19 @@ service cloud.firestore {
 
     match /settlements/{settlementId} {
       allow read: if signedIn();
+      // Either side may record a payment: the payer or the recipient.
       allow create: if signedIn()
         && request.resource.data.creatorId == request.auth.uid
-        && request.resource.data.fromUserId == request.auth.uid
+        && (request.resource.data.fromUserId == request.auth.uid
+            || request.resource.data.toUserId == request.auth.uid)
         && isGroupMember(request.resource.data.groupId);
-      allow update: if signedIn() && resource.data.creatorId == request.auth.uid;
+      // The creator may change the amount and note; who paid whom, the group and the date stay fixed.
+      allow update: if signedIn() && resource.data.creatorId == request.auth.uid
+        && request.resource.data.creatorId == resource.data.creatorId
+        && request.resource.data.fromUserId == resource.data.fromUserId
+        && request.resource.data.toUserId == resource.data.toUserId
+        && request.resource.data.groupId == resource.data.groupId
+        && request.resource.data.date == resource.data.date;
       allow delete: if signedIn() && (
         resource.data.creatorId == request.auth.uid
         || isGroupOwner(resource.data.groupId)

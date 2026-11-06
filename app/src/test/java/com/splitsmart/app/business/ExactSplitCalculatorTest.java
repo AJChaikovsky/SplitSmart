@@ -47,4 +47,15 @@ public class ExactSplitCalculatorTest {
     public void rejectsMissingParticipantAmount() {
         split(10.0, Arrays.asList("a", "b"), amounts("a", 10.0));
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void rejectsTotalOffByOneCent() {
+        split(30.0, Arrays.asList("a", "b", "c"), amounts("a", 5.0, "b", 10.0, "c", 14.99));
+    }
+
+    @Test
+    public void allowsZeroShare() {
+        List<ExpenseShare> shares = split(30.0, Arrays.asList("a", "b", "c"), amounts("a", 0.0, "b", 15.0, "c", 15.0));
+        assertEquals(0.0, shares.get(0).getAmount(), 0.0);
+    }
 }

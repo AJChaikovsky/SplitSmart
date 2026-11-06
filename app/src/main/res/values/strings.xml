@@ -21,7 +21,7 @@
     <string name="save">Save</string>
     <string name="amount">Amount</string>
     <string name="title">Title</string>
-    <string name="date">Date (tap to change)</string>
+    <string name="date">Date (recorded automatically)</string>
     <string name="note">Note</string>
     <string name="category">Category</string>
     <string name="split_method">Split method</string>
@@ -58,6 +58,11 @@ You’re square with this group.</string>
     <string name="member_filter">Member</string>
     <string name="apply_filters">Apply filters</string>
     <string name="activity_label">Activity</string>
+    <string name="settlement_i_paid">I paid</string>
+    <string name="settlement_i_was_paid">I was paid</string>
+    <string name="settlement_paid_to">Paid to</string>
+    <string name="settlement_received_from">Received from</string>
+    <string name="edit_settlement">Edit settlement</string>
     <string name="no_transactions">No matches yet.
 Try another search or filter.</string>
     <string name="new_group_title">Start something shared.</string>
@@ -67,7 +72,7 @@ Try another search or filter.</string>
     <string name="expense_form_title">Make the split simple.</string>
     <string name="expense_form_intro">Add the details, choose your people, and review each share.</string>
     <string name="settlement_form_title">Settle up.</string>
-    <string name="settlement_form_intro">Already paid someone back? Record it here.</string>
+    <string name="settlement_form_intro">Record a payment made outside the app, whether you paid or were paid.</string>
     <string name="profile_title">Your corner.</string>
     <string name="profile_intro">Your USC account and profile details.</string>
     <string name="summary_title">The month, at a glance.</string>

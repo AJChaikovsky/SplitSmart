@@ -24,13 +24,40 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="24dp"
             android:text="@string/settlement_form_intro" />
-        <TextView
+        <!-- Either side can record a payment: the person who paid, or the person who received it. -->
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggleDirection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pay to"
-            android:textStyle="bold"
-            android:textAppearance="@style/TextAppearance.SplitSmart.Section"
-            android:textSize="13sp" />
+            android:layout_marginBottom="16dp"
+            app:checkedButton="@+id/btnIPaid"
+            app:selectionRequired="true"
+            app:singleSelection="true">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnIPaid"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:text="@string/settlement_i_paid"
+                android:textAllCaps="false" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnIWasPaid"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:text="@string/settlement_i_was_paid"
+                android:textAllCaps="false" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+        <TextView
+            android:id="@+id/tvPersonLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settlement_paid_to"
+            android:textAppearance="@style/TextAppearance.SplitSmart.Eyebrow" />
         <Spinner
             android:id="@+id/spPayTo"
             android:layout_width="match_parent"

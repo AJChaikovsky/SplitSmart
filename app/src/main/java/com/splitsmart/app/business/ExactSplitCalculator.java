@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Validates that exact amounts sum to the total (within 0.01) and returns those shares.
+ * Validates that exact amounts sum to exactly the total and returns those shares.
  */
 public class ExactSplitCalculator implements SplitCalculator {
     @Override
@@ -32,9 +32,10 @@ public class ExactSplitCalculator implements SplitCalculator {
         }
 
         long totalCents = MoneyUtils.toCents(totalAmount);
-        require(Math.abs(sum - totalCents) <= 1,
-                "Exact amounts must sum to total (within 0.01). Sum=" + MoneyUtils.fromCents(sum)
-                        + ", total=" + totalAmount);
+        require(sum == totalCents,
+                "Exact amounts must add up to the total. They add up to "
+                        + String.format("$%.2f", MoneyUtils.fromCents(sum))
+                        + " but the total is " + String.format("$%.2f", totalAmount));
 
         List<ExpenseShare> shares = new ArrayList<>();
         for (String id : participantIds) {

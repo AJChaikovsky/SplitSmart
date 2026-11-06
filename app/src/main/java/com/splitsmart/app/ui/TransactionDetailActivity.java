@@ -40,14 +40,22 @@ public class TransactionDetailActivity extends AppCompatActivity {
             finish();
             return;
         }
-
-        if (TransactionType.EXPENSE.name().equals(type)) {
-            loadExpense(id);
-        } else if (TransactionType.SETTLEMENT.name().equals(type)) {
-            loadSettlement(id);
-        } else {
+        if (!TransactionType.EXPENSE.name().equals(type) && !TransactionType.SETTLEMENT.name().equals(type)) {
             UiUtils.toast(this, "Unknown transaction type");
             finish();
+        }
+    }
+
+    /** Reloads each time the screen is shown, so edits made elsewhere appear immediately. */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (isFinishing()) return;
+        String id = getIntent().getStringExtra(HistoryActivity.EXTRA_TX_ID);
+        if (TransactionType.EXPENSE.name().equals(getIntent().getStringExtra(HistoryActivity.EXTRA_TX_TYPE))) {
+            loadExpense(id);
+        } else {
+            loadSettlement(id);
         }
     }
 
@@ -56,8 +64,11 @@ public class TransactionDetailActivity extends AppCompatActivity {
         return user != null ? user.getName() : uid;
     }
 
+    /** True once details have shown; later reload failures (e.g. after deleting it) just close. */
+    private boolean shown = false;
+
     private void closeWithError(String message) {
-        UiUtils.toast(this, message);
+        if (!shown) UiUtils.toast(this, message);
         finish();
     }
 
@@ -68,6 +79,7 @@ public class TransactionDetailActivity extends AppCompatActivity {
             payer[0] = nameOf(expense.getPayerId());
             return expense;
         }, expense -> {
+            shown = true;
             binding.tvTitle.setText(expense.getTitle());
             StringBuilder details = new StringBuilder()
                     .append("Type: Expense\n")
@@ -86,13 +98,15 @@ public class TransactionDetailActivity extends AppCompatActivity {
     }
 
     private void loadSettlement(String id) {
-        String[] names = new String[2];
+        String[] names = new String[3];
         UiUtils.launchIo(this, () -> {
             Settlement settlement = settlementManager.getSettlement(id);
             names[0] = nameOf(settlement.getFromUserId());
             names[1] = nameOf(settlement.getToUserId());
+            names[2] = nameOf(settlement.getCreatorId());
             return settlement;
         }, settlement -> {
+            shown = true;
             boolean isCreator = settlement.getCreatorId().equals(accountManager.currentUid());
             binding.tvTitle.setText("Settlement");
             StringBuilder details = new StringBuilder()
@@ -100,11 +114,17 @@ public class TransactionDetailActivity extends AppCompatActivity {
                     .append("From: ").append(names[0]).append('\n')
                     .append("To: ").append(names[1]).append('\n')
                     .append("Amount: ").append(UiUtils.formatMoney(settlement.getAmount())).append('\n')
-                    .append("Date: ").append(settlement.getDate()).append('\n');
+                    .append("Date: ").append(settlement.getDate()).append('\n')
+                    .append("Recorded by: ").append(names[2]).append('\n');
             if (!settlement.getNote().trim().isEmpty()) {
                 details.append("Note: ").append(settlement.getNote()).append('\n');
             }
             binding.tvDetails.setText(details.toString());
+            binding.btnEditSettlement.setVisibility(isCreator ? View.VISIBLE : View.GONE);
+            binding.btnEditSettlement.setOnClickListener(v ->
+                    startActivity(new Intent(this, CreateSettlementActivity.class)
+                            .putExtra(CreateSettlementActivity.EXTRA_SETTLEMENT_ID, settlement.getId())
+                            .putExtra(HomeActivity.EXTRA_GROUP_ID, settlement.getGroupId())));
             if (isCreator) {
                 binding.btnDeleteSettlement.setVisibility(View.VISIBLE);
                 binding.btnDeleteSettlement.setOnClickListener(v ->

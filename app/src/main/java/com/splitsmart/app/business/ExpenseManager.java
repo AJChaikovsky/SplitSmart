@@ -101,7 +101,8 @@ public class ExpenseManager {
         return expenseRepository.save(expense);
     }
 
-    public Expense editExpense(String expenseId, String title, double amount, String date,
+    /** Updates an expense. Its creation date never changes, so it stays in its original month. */
+    public Expense editExpense(String expenseId, String title, double amount,
                                ExpenseCategory category, String payerId, List<String> participantIds,
                                SplitMethod splitMethod, String note,
                                Map<String, Double> exactAmounts, Map<String, Double> percentages) {
@@ -112,13 +113,11 @@ public class ExpenseManager {
         Group group = requireFound(groupRepository.getById(existing.getGroupId()), "Group not found");
 
         require(!isBlank(title), "Title is required");
-        MoneyUtils.requireIsoDate(date);
         validateExpenseInput(amount, payerId, participantIds, group.getMemberIds());
         List<ExpenseShare> shares = computeShares(amount, participantIds, splitMethod, exactAmounts, percentages);
 
         existing.setTitle(title.trim());
         existing.setAmount(MoneyUtils.roundToCents(amount));
-        existing.setDate(date.trim());
         existing.setCategory(category.name());
         existing.setPayerId(payerId);
         existing.setParticipantIds(participantIds);

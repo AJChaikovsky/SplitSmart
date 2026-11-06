@@ -1,6 +1,5 @@
 package com.splitsmart.app.ui;
 
-import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.Gravity;
@@ -28,12 +27,10 @@ import com.splitsmart.app.model.SplitMethod;
 import com.splitsmart.app.model.User;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class CreateExpenseActivity extends AppCompatActivity {
@@ -83,10 +80,10 @@ public class CreateExpenseActivity extends AppCompatActivity {
             getSupportActionBar().setTitle(editingExpenseId == null ? getString(R.string.add_expense) : "Edit Expense");
         }
 
+        // The creation date is generated automatically and can't be changed; edits keep the original date.
         binding.etDate.setText(UiUtils.todayIso());
         binding.etDate.setFocusable(false);
-        binding.etDate.setClickable(true);
-        binding.etDate.setOnClickListener(v -> showDatePicker());
+        binding.etDate.setLongClickable(false);
 
         binding.spCategory.setAdapter(UiUtils.choiceAdapter(this, enumNames(ExpenseCategory.values())));
         binding.spCategory.setSelection(ExpenseCategory.OTHER.ordinal());
@@ -201,22 +198,6 @@ public class CreateExpenseActivity extends AppCompatActivity {
         });
     }
 
-    private void showDatePicker() {
-        Calendar cal = Calendar.getInstance();
-        String current = UiUtils.text(binding.etDate);
-        if (current.matches("^\\d{4}-\\d{2}-\\d{2}$")) {
-            String[] parts = current.split("-");
-            cal.set(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]) - 1, Integer.parseInt(parts[2]));
-        }
-        new DatePickerDialog(
-                this,
-                (picker, year, month, day) ->
-                        binding.etDate.setText(String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, day)),
-                cal.get(Calendar.YEAR),
-                cal.get(Calendar.MONTH),
-                cal.get(Calendar.DAY_OF_MONTH)
-        ).show();
-    }
 
     private String currentPayerId() {
         int position = binding.spPayer.getSelectedItemPosition();
@@ -413,9 +394,8 @@ public class CreateExpenseActivity extends AppCompatActivity {
             UiUtils.toast(this, "Enter a valid amount");
             return;
         }
-        // The saved date is always the device's current date (requirement: auto-generated creation date).
-        String date = UiUtils.todayIso();
-        binding.etDate.setText(date);
+        // New expenses get today's date; an edited expense keeps its original creation date.
+        String date = editingExpenseId == null ? UiUtils.todayIso() : UiUtils.text(binding.etDate);
         String note = UiUtils.text(binding.etNote);
         ExpenseCategory category = ExpenseCategory.values()[binding.spCategory.getSelectedItemPosition()];
         SplitMethod method = SplitMethod.values()[binding.spSplitMethod.getSelectedItemPosition()];
@@ -463,7 +443,7 @@ public class CreateExpenseActivity extends AppCompatActivity {
         UiUtils.launchIo(this, () -> id == null
                 ? expenseManager.createExpense(groupId, title, amount, date, category, payerId, participants,
                 method, note, exact, pct)
-                : expenseManager.editExpense(id, title, amount, date, category, payerId, participants,
+                : expenseManager.editExpense(id, title, amount, category, payerId, participants,
                 method, note, exact, pct), expense -> {
             binding.progress.setVisibility(View.GONE);
             UiUtils.toast(this, "Saved");
