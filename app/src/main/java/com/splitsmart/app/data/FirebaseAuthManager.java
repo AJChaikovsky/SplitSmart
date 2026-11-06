@@ -40,20 +40,22 @@ public class FirebaseAuthManager {
         return auth.getCurrentUser() != null;
     }
 
-    public FirebaseUser register(String email, String password) {
+    /** Creates the account and signs it in. Returns the new user's uid. */
+    public String register(String email, String password) {
         AuthResult result = TaskAwaiter.await(auth.createUserWithEmailAndPassword(email, password));
         if (result.getUser() == null) {
             throw new IllegalStateException("Registration succeeded but user is null");
         }
-        return result.getUser();
+        return result.getUser().getUid();
     }
 
-    public FirebaseUser login(String email, String password) {
+    /** Signs in. Returns the user's uid. */
+    public String login(String email, String password) {
         AuthResult result = TaskAwaiter.await(auth.signInWithEmailAndPassword(email, password));
         if (result.getUser() == null) {
             throw new IllegalStateException("Login succeeded but user is null");
         }
-        return result.getUser();
+        return result.getUser().getUid();
     }
 
     public void logout() {

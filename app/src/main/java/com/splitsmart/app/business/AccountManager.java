@@ -3,7 +3,6 @@ package com.splitsmart.app.business;
 import static com.splitsmart.app.business.Preconditions.isBlank;
 import static com.splitsmart.app.business.Preconditions.require;
 
-import com.google.firebase.auth.FirebaseUser;
 import com.splitsmart.app.data.FirebaseAuthManager;
 import com.splitsmart.app.data.UserRepository;
 import com.splitsmart.app.model.User;
@@ -79,9 +78,9 @@ public class AccountManager {
 
         // Auth first so Firestore reads/writes run as a signed-in user.
         // Email uniqueness is enforced by Firebase Authentication.
-        FirebaseUser firebaseUser;
+        String uid;
         try {
-            firebaseUser = authManager.register(normalizedEmail, password);
+            uid = authManager.register(normalizedEmail, password);
         } catch (RuntimeException e) {
             String msg = messageOf(e);
             if (containsAny(msg, "email address is already in use", "ERROR_EMAIL_ALREADY_IN_USE")) {
@@ -98,7 +97,7 @@ public class AccountManager {
             User existingUscId = userRepository.getByUscId(normalizedUscId);
             require(existingUscId == null, "An account with this USC ID already exists");
 
-            User user = new User(firebaseUser.getUid(), name.trim(), normalizedEmail, normalizedUscId);
+            User user = new User(uid, name.trim(), normalizedEmail, normalizedUscId);
             userRepository.save(user);
             return user;
         } catch (RuntimeException e) {
@@ -116,9 +115,9 @@ public class AccountManager {
         ValidationResult validation = validateLogin(email, password);
         require(validation.isOk(), validation.getError() != null ? validation.getError() : "Invalid login");
 
-        FirebaseUser firebaseUser;
+        String uid;
         try {
-            firebaseUser = authManager.login(email.trim().toLowerCase(Locale.ROOT), password);
+            uid = authManager.login(email.trim().toLowerCase(Locale.ROOT), password);
         } catch (RuntimeException e) {
             String msg = messageOf(e);
             if (containsAny(msg, "password is invalid", "WRONG_PASSWORD", "INVALID_LOGIN_CREDENTIALS")) {
@@ -134,7 +133,7 @@ public class AccountManager {
             }
             throw e;
         }
-        User user = userRepository.getById(firebaseUser.getUid());
+        User user = userRepository.getById(uid);
         return Preconditions.requireState(user, "User profile not found in Firestore");
     }
 
