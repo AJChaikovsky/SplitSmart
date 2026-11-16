@@ -55,6 +55,27 @@ Unit tests:
 
 Register with a `@usc.edu` email and a 10-digit USC ID.
 
+## Running the tests
+
+**White-box (JUnit, `app/src/test`)** — no emulator needed:
+
+```bash
+./gradlew testDebugUnitTest
+```
+
+In Android Studio: right-click `app/src/test` → Run Tests (or Run with Coverage for the coverage report).
+
+**Black-box (Espresso, `app/src/androidTest`)** — start an emulator first, then:
+
+```bash
+./gradlew connectedDebugAndroidTest
+```
+
+In Android Studio: right-click `app/src/androidTest` → Run Tests. Note that the Gradle task uninstalls the app when it finishes, so you'll need to log in again afterwards. Running from Android Studio keeps the app installed.
+
+Writing a new Espresso test: extend `EspressoTestBase` (it makes Espresso wait for Firebase calls via `UiUtils.IDLING` and records which screens open). See `RegisterTest` for the pattern. Validation errors are Toasts, which Espresso can't read on Android 11+, so check that the user stays on the screen and the next screen never opens.
+
+
 ## Main flows
 
 Register → Login → Home (groups) → Create Group → Group Detail (Members, Add Expense, Balances, History, Monthly Summary) → full CRUD for expenses and settlements (creator / owner rules apply).

@@ -52,5 +52,15 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
 
+    // Lets Espresso wait for background work started by UiUtils (see UiUtils.IDLING).
+    implementation(libs.espresso.idling.resource)
+
     testImplementation(libs.junit)
+
+    // Black-box (instrumented) tests in app/src/androidTest
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.espresso.core)
+    androidTestImplementation(libs.espresso.intents)
 }

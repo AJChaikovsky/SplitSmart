@@ -16,6 +16,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.test.espresso.idling.CountingIdlingResource;
 
 import com.splitsmart.app.R;
 
@@ -29,6 +30,12 @@ import java.util.concurrent.Executors;
 public final class UiUtils {
     private static final ExecutorService IO = Executors.newCachedThreadPool();
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
+
+    /**
+     * Busy while any runAsync work (usually a Firebase call) is in flight or its result is still
+     * being delivered. Espresso tests register it so they wait for the screen to settle.
+     */
+    public static final CountingIdlingResource IDLING = new CountingIdlingResource("UiUtils.runAsync");
 
     private UiUtils() {
     }
@@ -51,6 +58,7 @@ public final class UiUtils {
                                       Callback<T> onSuccess, Callback<String> onError) {
         UiTask task = new UiTask();
         Lifecycle lifecycle = owner.getLifecycle();
+        IDLING.increment();
         IO.execute(() -> {
             Object outcome;
             boolean failed;
@@ -64,12 +72,16 @@ public final class UiUtils {
             Object result = outcome;
             boolean error = failed;
             MAIN.post(() -> {
-                if (task.isCancelled() || lifecycle.getCurrentState() == Lifecycle.State.DESTROYED) return;
-                if (error) {
-                    onError.accept((String) result);
-                } else {
-                    @SuppressWarnings("unchecked") T value = (T) result;
-                    onSuccess.accept(value);
+                try {
+                    if (task.isCancelled() || lifecycle.getCurrentState() == Lifecycle.State.DESTROYED) return;
+                    if (error) {
+                        onError.accept((String) result);
+                    } else {
+                        @SuppressWarnings("unchecked") T value = (T) result;
+                        onSuccess.accept(value);
+                    }
+                } finally {
+                    IDLING.decrement();
                 }
             });
         });
