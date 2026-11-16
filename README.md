@@ -73,6 +73,15 @@ In Android Studio: right-click `app/src/test` → Run Tests (or Run with Coverag
 
 In Android Studio: right-click `app/src/androidTest` → Run Tests. Note that the Gradle task uninstalls the app when it finishes, so you'll need to log in again afterwards. Running from Android Studio keeps the app installed.
 
+**Test account for black-box tests that sign in.** Tests that need a login (LoginTest, ProfileTest, GroupTest, and the group/expense/settlement tests) read a test account from instrumentation arguments, so no password is stored in the repo. If none is supplied and the emulator isn't signed in, those tests are skipped, not failed.
+
+- Android Studio: Run → Edit Configurations → your Android Instrumented Tests configuration → Instrumentation arguments → add `testEmail` and `testPassword`.
+- Gradle:
+
+```bash
+./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.testEmail=espresso.test@usc.edu -Pandroid.testInstrumentationRunnerArguments.testPassword=YOUR_TEST_PASSWORD
+```
+
 Writing a new Espresso test: extend `EspressoTestBase` (it makes Espresso wait for Firebase calls via `UiUtils.IDLING` and records which screens open). See `RegisterTest` for the pattern. Validation errors are Toasts, which Espresso can't read on Android 11+, so check that the user stays on the screen and the next screen never opens.
 
 

@@ -24,6 +24,7 @@ import org.junit.runner.RunWith;
 
 /**
  * Black-box tests for registration (owner: AJ, BB-01 to BB-05).
+ * Run: right-click this file in Android Studio → Run 'RegisterTest' (emulator running).
  *
  * Validation errors appear as Toasts, which Espresso can't read on Android 11+. So each test
  * checks the observable outcome instead: the user stays on the Register screen and Home never
@@ -58,9 +59,44 @@ public class RegisterTest extends EspressoTestBase {
         assertRegistrationRefused();
     }
 
-    // AJ: BB-02 to BB-05 go here, reusing submit(...) and assertRegistrationRefused():
-    //   BB-02 rejectsNineDigitId       -> uscId "123456789"
-    //   BB-03 rejectsElevenDigitId     -> uscId "12345678901"
-    //   BB-04 rejectsIdWithLetter      -> uscId "12345678A9"
-    //   BB-05 rejectsBlankName         -> name ""
+    /**
+     * BB-02: a 9-digit USC ID is rejected.
+     * Rationale: boundary value just below the required length of 10.
+     */
+    @Test
+    public void rejectsNineDigitId() {
+        submit("Eve Tester", "eve.tester@usc.edu", "123456789", "password1");
+        assertRegistrationRefused();
+    }
+
+    /**
+     * BB-03: an 11-digit USC ID is rejected.
+     * Rationale: boundary value just above the required length of 10.
+     */
+    @Test
+    public void rejectsElevenDigitId() {
+        submit("Eve Tester", "eve.tester@usc.edu", "12345678901", "password1");
+        assertRegistrationRefused();
+    }
+
+    /**
+     * BB-04: a 10-character USC ID containing a letter is rejected.
+     * Rationale: the length is right, so only the "digits only" rule can reject it. A letter in
+     * the middle (not at either end) avoids passing just because of a prefix/suffix check.
+     */
+    @Test
+    public void rejectsIdWithLetter() {
+        submit("Eve Tester", "eve.tester@usc.edu", "12345678A9", "password1");
+        assertRegistrationRefused();
+    }
+
+    /**
+     * BB-05: a blank name is rejected.
+     * Rationale: equivalence class "required field missing"; every other field is valid.
+     */
+    @Test
+    public void rejectsBlankName() {
+        submit("", "eve.tester@usc.edu", "1234567890", "password1");
+        assertRegistrationRefused();
+    }
 }
