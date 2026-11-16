@@ -101,6 +101,15 @@ public class F4BalanceAndSettlementTest {
         assertEquals(8.0, app.owed(offset, alice, bob), 0.0);
         assertEquals("Date stays fixed", TestBackend.TODAY, app.settlementManager.getSettlement(payment.getId()).getDate());
 
+        // The edit limit must add back the old payment. The remaining $8 alone is not the limit:
+        // changing the $3 payment to the full original $11 debt is valid.
+        app.settlementManager.editSettlement(payment.getId(), 11.0, "paid in full");
+        assertEquals(0.0, app.owed(offset, alice, bob), 0.0);
+        assertRejected("Amount cannot exceed what is owed",
+                () -> app.settlementManager.editSettlement(payment.getId(), 11.01, "one cent too much"));
+        assertEquals("Rejected edit leaves the valid payment unchanged", 11.0,
+                app.settlementManager.getSettlement(payment.getId()).getAmount(), 0.0);
+
         app.settlementManager.deleteSettlement(payment.getId());
         assertEquals(11.0, app.owed(offset, alice, bob), 0.0);
     }

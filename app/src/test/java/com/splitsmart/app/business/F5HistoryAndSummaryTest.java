@@ -106,6 +106,11 @@ public class F5HistoryAndSummaryTest {
                 Arrays.asList("Settlement", "Uber to LAX", "Chipotle dinner"),
                 titles(history(new HistoryManager.HistoryFilter(null, null, null, bob.getUid(),
                         HistoryManager.SortOrder.NEWEST))));
+        // Filters compose with AND: a matching member cannot override the requested category.
+        assertEquals(Collections.singletonList("Chipotle dinner"), titles(history(new HistoryManager.HistoryFilter(
+                null, TransactionType.EXPENSE, ExpenseCategory.FOOD, bob.getUid(), HistoryManager.SortOrder.NEWEST))));
+        assertTrue(history(new HistoryManager.HistoryFilter(
+                null, TransactionType.EXPENSE, ExpenseCategory.FOOD, carol.getUid(), HistoryManager.SortOrder.NEWEST)).isEmpty());
     }
 
     @Test
