@@ -56,6 +56,12 @@ public class GroupBalanceFragment extends GroupTabFragment {
             holder.description.setText(getString(R.string.balance_direction, from, to));
             holder.amount.setText(UiUtils.formatMoney(balance.getAmount()));
             holder.avatar.setText(UiUtils.initials(from));
+            // Green when you're owed, red when you owe; neutral for debts between other members.
+            String me = accountManager.currentUid();
+            int color = balance.getToUserId().equals(me) ? R.color.success
+                    : balance.getFromUserId().equals(me) ? R.color.error
+                    : R.color.text_primary;
+            holder.amount.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), color));
         }
     };
 

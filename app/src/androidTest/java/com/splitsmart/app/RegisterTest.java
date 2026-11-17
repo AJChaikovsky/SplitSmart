@@ -99,4 +99,15 @@ public class RegisterTest extends EspressoTestBase {
         submit("", "eve.tester@usc.edu", "1234567890", "password1");
         assertRegistrationRefused();
     }
+
+    /**
+     * BB-26: a 5-character password is rejected.
+     * Rationale: boundary value just below the 6-character minimum. Every other field is valid,
+     * so only the password length can stop the registration.
+     */
+    @Test
+    public void rejectsFiveCharacterPassword() {
+        submit("Eve Tester", "eve.tester@usc.edu", "1234567890", "12345");
+        assertRegistrationRefused();
+    }
 }

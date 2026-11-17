@@ -10,6 +10,7 @@ import static androidx.test.espresso.intent.Intents.intended;
 import static androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.junit.Assert.assertEquals;
 
 import androidx.test.core.app.ActivityScenario;
@@ -77,5 +78,19 @@ public class GroupTest extends EspressoTestBase {
         }
         assertEquals("Group was saved", groupName, created == null ? null : created.getName());
         assertEquals("Creator is the owner", AccountManager.getInstance().currentUid(), created.getOwnerId());
+    }
+
+    /**
+     * BB-31: a group name typed on Create Group survives a screen rotation.
+     * Rationale: rotation recreates the screen; state preservation was a fixed bug. recreate()
+     * goes through the same save/restore path as a real rotation. Nothing is saved to Firebase.
+     */
+    @Test
+    public void typedNameSurvivesRotation() {
+        try (ActivityScenario<CreateGroupActivity> scenario = ActivityScenario.launch(CreateGroupActivity.class)) {
+            onView(withId(R.id.etName)).perform(scrollTo(), replaceText("Rotation Check"), closeSoftKeyboard());
+            scenario.recreate();
+            onView(withId(R.id.etName)).check(matches(withText("Rotation Check")));
+        }
     }
 }

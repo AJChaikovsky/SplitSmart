@@ -31,6 +31,11 @@ public class F1UserAndGroupManagementTest {
 
     // --- Register and validate input ---
 
+    /**
+     * WB-01: validateRegistration rejects an email outside @usc.edu.
+     * Rationale: covers the true branch of the email-domain check. Name is valid so the earlier
+     * blank-name branch is skipped, and the exact error message proves this branch returned.
+     */
     @Test
     public void registrationRejectsNonUscEmail() {
         AccountManager.ValidationResult result =
@@ -39,12 +44,22 @@ public class F1UserAndGroupManagementTest {
         assertEquals("Email must be a @usc.edu address", result.getError());
     }
 
+    /**
+     * WB-02: validateRegistration rejects 9- and 11-digit USC IDs.
+     * Rationale: the ID regex ^\d{10}$ is checked on both sides of its length boundary, so a
+     * regex that only bounds one side (e.g. \d{10,}) would fail this test.
+     */
     @Test
     public void registrationRejectsUscIdOfWrongLength() {
         assertFalse(app.accounts.validateRegistration("Eve", "eve@usc.edu", "password1", "123456789").isOk());
         assertFalse(app.accounts.validateRegistration("Eve", "eve@usc.edu", "password1", "12345678901").isOk());
     }
 
+    /**
+     * WB-03: validateRegistration rejects a 10-character ID containing a letter.
+     * Rationale: the length is right, so only the digits-only part of the regex can fail. Guards
+     * the USC ID keyboard bug fix (the field now accepts any text and relies on this check).
+     */
     @Test
     public void registrationRejectsTenCharacterIdWithNonDigit() {
         AccountManager.ValidationResult result =
@@ -65,6 +80,11 @@ public class F1UserAndGroupManagementTest {
 
     // --- Reject duplicate identities ---
 
+    /**
+     * WB-04: register maps Firebase's "email already in use" error to a clear message.
+     * Rationale: covers the first branch of the catch block around authManager.register. The fake
+     * auth throws Firebase's real error text, so the string matching in register is exercised.
+     */
     @Test
     public void registrationRejectsExistingEmailWithDifferentId() {
         app.user("Alice", "1000000001");
@@ -72,6 +92,12 @@ public class F1UserAndGroupManagementTest {
                 () -> app.accounts.register("Alice Two", "alice@usc.edu", "password1", "2000000002"));
     }
 
+    /**
+     * WB-05: register rejects a USC ID that is already taken, and rolls back the new login.
+     * Rationale: the new email passes Firebase, so execution reaches the duplicate-ID check and
+     * then the catch block that deletes the orphan Auth account. Asserts both the error and the
+     * rollback, and that no profile was saved.
+     */
     @Test
     public void registrationRejectsExistingUscIdWithDifferentEmail() {
         app.user("Alice", "1000000001");
@@ -106,6 +132,11 @@ public class F1UserAndGroupManagementTest {
 
     // --- Create a group ---
 
+    /**
+     * WB-06: createGroup makes the creator the owner and only member, and saves the group.
+     * Rationale: reads the group back from the repository instead of trusting the returned object,
+     * so a missing save would fail. Checks every field createGroup sets.
+     */
     @Test
     public void creatorBecomesOwnerAndGroupIsSaved() {
         User alice = app.user("Alice", "1000000001");
@@ -140,6 +171,11 @@ public class F1UserAndGroupManagementTest {
                 () -> app.requestManager.sendGroupInviteByEmail(group.getId(), bob.getEmail()));
     }
 
+    /**
+     * WB-07: a member who isn't the owner can't invite someone to the group.
+     * Rationale: Carol is a registered USC user, so the email checks pass and only the owner check
+     * in sendGroupInvite can reject the request.
+     */
     @Test
     public void nonOwnerCannotAddMembers() {
         User alice = app.user("Alice", "1000000001");
@@ -183,6 +219,11 @@ public class F1UserAndGroupManagementTest {
         assertNotNull(app.groups.getById(group.getId()));
     }
 
+    /**
+     * WB-08: deleteGroup removes the group with its expenses and settlements, and nothing else.
+     * Rationale: covers all three delete calls in deleteGroup. A second group with its own expense
+     * proves the cascade is limited to the deleted group's ID.
+     */
     @Test
     public void deletingGroupRemovesItsExpensesAndSettlementsOnly() {
         User alice = app.user("Alice", "1000000001");

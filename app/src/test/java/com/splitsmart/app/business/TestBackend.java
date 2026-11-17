@@ -39,6 +39,9 @@ class TestBackend {
     final SettlementManager settlementManager = new SettlementManager(settlements, balances, accounts);
     final HistoryManager history = new HistoryManager(expenses, settlements);
     final SummaryManager summary = new SummaryManager(expenses, users, groups);
+    final FriendManager friendManager =
+            new FriendManager(friends, users, groups, expenses, settlements, accounts, balances, requestManager);
+    final ActivityManager activity = new ActivityManager(groups, expenses, settlements, users, accounts);
 
     static final String TODAY = "2026-11-06";
 
@@ -66,6 +69,14 @@ class TestBackend {
             requestManager.accept(invite.getId());
         }
         return groupManager.getGroup(group.getId());
+    }
+
+    /** {@code from} sends a friend request and {@code to} accepts it. */
+    void befriend(User from, User to) {
+        signIn(from);
+        AppRequest request = requestManager.sendFriendRequestByEmail(to.getEmail());
+        signIn(to);
+        requestManager.accept(request.getId());
     }
 
     Expense equalExpense(Group group, User creator, String title, double amount, User payer, User... participants) {

@@ -3,6 +3,9 @@ package com.splitsmart.app.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -174,11 +177,24 @@ public class HomeActivity extends AppCompatActivity {
                 binding.tvFriendsSummary.setVisibility(View.GONE);
             } else {
                 binding.tvFriendsSummary.setVisibility(View.VISIBLE);
-                binding.tvFriendsSummary.setText(getString(R.string.you_are_owed) + ": "
-                        + UiUtils.formatMoney(owedToYou) + "  ·  "
-                        + getString(R.string.you_owe) + ": " + UiUtils.formatMoney(youOwe));
+                SpannableStringBuilder summary = new SpannableStringBuilder();
+                summary.append(getString(R.string.you_are_owed)).append(": ");
+                appendColored(summary, UiUtils.formatMoney(owedToYou), owedToYou > 0.009 ? R.color.success : 0);
+                summary.append("  ·  ").append(getString(R.string.you_owe)).append(": ");
+                appendColored(summary, UiUtils.formatMoney(youOwe), youOwe > 0.009 ? R.color.error : 0);
+                binding.tvFriendsSummary.setText(summary);
             }
         }, this::showError);
+    }
+
+    /** Appends text in the given color, or in the view's normal color when colorRes is 0. */
+    private void appendColored(SpannableStringBuilder builder, String text, int colorRes) {
+        int start = builder.length();
+        builder.append(text);
+        if (colorRes != 0) {
+            builder.setSpan(new ForegroundColorSpan(ContextCompat.getColor(this, colorRes)),
+                    start, builder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
     }
 
     private void loadRequests() {
@@ -338,7 +354,7 @@ public class HomeActivity extends AppCompatActivity {
             holder.email.setText(item.getFriend().getEmail());
             if (item.youAreOwed()) {
                 holder.balance.setText(ctx.getString(R.string.owes_you, UiUtils.formatMoney(item.getNetAmount())));
-                holder.balance.setTextColor(ContextCompat.getColor(ctx, R.color.primary));
+                holder.balance.setTextColor(ContextCompat.getColor(ctx, R.color.success));
             } else if (item.youOwe()) {
                 holder.balance.setText(ctx.getString(R.string.you_owe_amount, UiUtils.formatMoney(-item.getNetAmount())));
                 holder.balance.setTextColor(ContextCompat.getColor(ctx, R.color.error));

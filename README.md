@@ -73,7 +73,7 @@ In Android Studio: right-click `app/src/test` → Run Tests (or Run with Coverag
 
 In Android Studio: right-click `app/src/androidTest` → Run Tests. Note that the Gradle task uninstalls the app when it finishes, so you'll need to log in again afterwards. Running from Android Studio keeps the app installed.
 
-**Test account for black-box tests that sign in.** Tests that need a login (LoginTest, ProfileTest, GroupTest, and the group/expense/settlement tests) read a test account from instrumentation arguments, so no password is stored in the repo. AJ's tests skip login-dependent cases when no credentials or existing session are available. Max's seeded screen tests require the dedicated test account and fail with a setup message if its credentials are missing.
+**Test account for black-box tests that sign in.** Tests that need a login (LoginTest, ProfileTest, GroupTest, GroupMembersTest, HomeTabsTest, and the group/expense/settlement tests) read a test account from instrumentation arguments, so no password is stored in the repo. AJ's tests skip login-dependent cases when no credentials or existing session are available. Max's seeded screen tests require the dedicated test account and fail with a setup message if its credentials are missing.
 
 - Android Studio: Run → Edit Configurations → your Android Instrumented Tests configuration → Instrumentation arguments → add `testEmail` and `testPassword`.
 - Gradle:
