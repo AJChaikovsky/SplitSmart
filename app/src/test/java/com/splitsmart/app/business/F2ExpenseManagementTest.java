@@ -73,6 +73,7 @@ public class F2ExpenseManagementTest {
 
     // --- Validate the amount ---
 
+    /** WB-09 */
     @Test
     public void rejectsZeroNegativeAndThreeDecimalAmounts() {
         List<String> everyone = TestBackend.ids(alice, bob, carol);
@@ -84,6 +85,7 @@ public class F2ExpenseManagementTest {
 
     // --- Validate payer and participants ---
 
+    /** WB-11 */
     @Test
     public void payerAndParticipantsMustBelongToTheGroup() {
         assertRejected("All participants must be members of the group",
@@ -92,6 +94,7 @@ public class F2ExpenseManagementTest {
                 () -> create(30.0, david.getUid(), TestBackend.ids(alice, bob)));
     }
 
+    /** WB-10 */
     @Test
     public void needsTwoParticipantsIncludingThePayer() {
         assertRejected("At least 2 participants are required",
@@ -102,6 +105,7 @@ public class F2ExpenseManagementTest {
 
     // --- Edit/delete with correct permissions ---
 
+    /** WB-12 — edit must not rewrite the creation date (guards the month-shift bug). */
     @Test
     public void creatorEditsPayerParticipantsAndAmountButKeepsCreationDate() {
         app.signIn(alice);
@@ -119,6 +123,7 @@ public class F2ExpenseManagementTest {
         assertEquals("Creation date unchanged", "2026-10-15", saved.getDate());
     }
 
+    /** WB-13 */
     @Test
     public void otherMemberCanViewButNotEditOrDelete() {
         Expense dinner = create(30.0, alice.getUid(), TestBackend.ids(alice, bob, carol));

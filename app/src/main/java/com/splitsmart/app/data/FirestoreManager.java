@@ -48,10 +48,10 @@ public class FirestoreManager {
     public CollectionReference settlements() { return db.collection(COLLECTION_SETTLEMENTS); }
     public CollectionReference friendships() { return db.collection(COLLECTION_FRIENDSHIPS); }
 
-    /** Returns the document's fields, or null if it does not exist. */
+    /** Returns the document's fields (with {@code id} filled from the document path), or null. */
     public Map<String, Object> getDocument(String collection, String id) {
         DocumentSnapshot snapshot = TaskAwaiter.await(db.collection(collection).document(id).get());
-        return snapshot.exists() ? snapshot.getData() : null;
+        return snapshot.exists() ? withDocumentId(snapshot) : null;
     }
 
     public void setDocument(String collection, String id, Map<String, Object> data) {
@@ -94,9 +94,21 @@ public class FirestoreManager {
     private static List<Map<String, Object>> documents(QuerySnapshot snapshot) {
         List<Map<String, Object>> results = new ArrayList<>();
         for (DocumentSnapshot document : snapshot.getDocuments()) {
-            Map<String, Object> data = document.getData();
+            Map<String, Object> data = withDocumentId(document);
             if (data != null) results.add(data);
         }
         return results;
+    }
+
+    /** Ensures maps always carry the Firestore document id (some writers omit the field). */
+    private static Map<String, Object> withDocumentId(DocumentSnapshot document) {
+        Map<String, Object> raw = document.getData();
+        if (raw == null) return null;
+        Map<String, Object> data = new HashMap<>(raw);
+        Object existing = data.get("id");
+        if (existing == null || String.valueOf(existing).trim().isEmpty()) {
+            data.put("id", document.getId());
+        }
+        return data;
     }
 }
