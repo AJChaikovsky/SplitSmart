@@ -83,7 +83,11 @@ public class CreateExpenseActivity extends AppCompatActivity {
         // The creation date is generated automatically and can't be changed; edits keep the original date.
         binding.etDate.setText(UiUtils.todayIso());
         binding.etDate.setFocusable(false);
+        binding.etDate.setFocusableInTouchMode(false);
+        binding.etDate.setClickable(false);
+        binding.etDate.setCursorVisible(false);
         binding.etDate.setLongClickable(false);
+        binding.etDate.setInputType(InputType.TYPE_NULL);
 
         binding.spCategory.setAdapter(UiUtils.choiceAdapter(this, enumNames(ExpenseCategory.values())));
         binding.spCategory.setSelection(ExpenseCategory.OTHER.ordinal());
@@ -98,6 +102,11 @@ public class CreateExpenseActivity extends AppCompatActivity {
             lockPayerAsParticipant();
             rebuildSplitValueInputs();
             updateSharePreview();
+        });
+        binding.etAmount.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override public void afterTextChanged(android.text.Editable s) { updateSharePreview(); }
         });
 
         binding.btnSave.setOnClickListener(v -> save());
@@ -293,7 +302,11 @@ public class CreateExpenseActivity extends AppCompatActivity {
             input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
             input.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
             if (keep.containsKey(uid)) input.setText(keep.get(uid));
-            input.setOnFocusChangeListener((v, hasFocus) -> updateSharePreview());
+            input.addTextChangedListener(new android.text.TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+                @Override public void afterTextChanged(android.text.Editable s) { updateSharePreview(); }
+            });
 
             valueInputs.put(uid, input);
             row.addView(name);

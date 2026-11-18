@@ -63,6 +63,7 @@ public class F3ExpenseSplittingTest {
         assertEquals(0.0, shares.get(0).getAmount(), 0.0);
     }
 
+    /** WB-15 — exact shares must sum to the expense (including a 1¢ miss). */
     @Test
     public void exactSplitRejectsMismatchedTotal() {
         assertRejected("must add up to the total",
@@ -84,6 +85,7 @@ public class F3ExpenseSplittingTest {
         assertEquals(3000, totalCents(shares));
     }
 
+    /** WB-16 */
     @Test
     public void percentageSplitRejectsTotalOtherThanHundred() {
         assertRejected("must sum to 100%",
@@ -92,6 +94,7 @@ public class F3ExpenseSplittingTest {
                 () -> split(30.0, SplitMethod.PERCENTAGE, Collections.emptyMap(), values(50, 50, 10)));
     }
 
+    /** WB-14 */
     @Test
     public void equalRoundingGivesRemainderCentToOneParticipant() {
         List<ExpenseShare> shares = split(10.0, SplitMethod.EQUAL, Collections.emptyMap(), Collections.emptyMap());
@@ -99,6 +102,7 @@ public class F3ExpenseSplittingTest {
         assertEquals(1000, totalCents(shares));
     }
 
+    /** WB-17 */
     @Test
     public void percentageRoundingStillSumsToFullAmount() {
         List<ExpenseShare> shares = split(10.0, SplitMethod.PERCENTAGE, Collections.emptyMap(),
